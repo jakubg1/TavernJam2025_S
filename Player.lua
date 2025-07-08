@@ -6,18 +6,19 @@ local Player = Class:derive("Player")
 
 ---Constructs the Player.
 function Player:new()
-    self.x, self.y = 100, 300
+    self.x, self.y = 100, 600
     self.speedX, self.speedY = 0, 0
     self.accX, self.accY = 0, 0
-    self.MAX_SPEED = 400
-    self.MAX_ACC = 2000
+    self.MAX_SPEED = 600
+    self.MAX_ACC = 4000
     self.DRAG = 1000
+    self.direction = 1 -- Direction: -1 - left, 1 - right
 
     self.sprites = _PLAYER_SPRITES
     self.SPRITE_STATES = {
         idle = {start = 1, frames = 6, framerate = 10},
         jumping = {start = 17, frames = 12, framerate = 10},
-        running = {start = 33, frames = 16, framerate = 20}
+        running = {start = 33, frames = 16, framerate = 30}
     }
     self.state = "idle"
     self.stateTime = 0
@@ -42,8 +43,10 @@ function Player:update(dt)
     self.accX = 0
     if left and not right then
         self.accX = -self.MAX_ACC
+        self.direction = -1
     elseif right and not left then
         self.accX = self.MAX_ACC
+        self.direction = 1
     end
     -- Apply the acceleration.
     self.speedX = self.speedX + self.accX * dt
@@ -65,7 +68,7 @@ function Player:update(dt)
     self.x = self.x + self.speedX * dt
 
     -- Update the animation state.
-    if self.speedX == 0 then
+    if self.speedX == 0 or self.accX == 0 and math.abs(self.speedX) < 500 then
         self:setSpriteState("idle")
     else
         self:setSpriteState("running")
@@ -77,7 +80,7 @@ end
 function Player:draw()
     local state = self.SPRITE_STATES[self.state]
     local frame = state.start + math.floor(self.stateTime * state.framerate) % state.frames
-    self.sprites:drawFrame(frame, self.x, self.y)
+    self.sprites:drawFrame(frame, self.x, self.y, self.direction == -1)
 end
 
 ---Executed when key is pressed.

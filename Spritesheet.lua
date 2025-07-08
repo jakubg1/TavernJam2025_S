@@ -31,8 +31,13 @@ end
 ---@param frame integer The frame index to be drawn.
 ---@param x number The X position of the frame.
 ---@param y number The Y position of the frame.
-function Spritesheet:drawFrame(frame, x, y)
-    love.graphics.draw(self.image, self.frames[frame], x, y)
+---@param flipX boolean? Whether the sprite should be flipped horizontally.
+function Spritesheet:drawFrame(frame, x, y, flipX)
+    local scaleX = flipX and -1 or 1
+    if flipX then
+        x = x + self.frameWidth
+    end
+    love.graphics.draw(self.image, self.frames[frame], x, y, 0, scaleX, 1)
 end
 
 return Spritesheet

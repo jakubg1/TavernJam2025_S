@@ -1,28 +1,25 @@
 local Class = require("com.class")
 
----@class Player : Class
----@overload fun(): Player
-local Player = Class:derive("Player")
+---@class WaterDrop : Class
+---@overload fun(): WaterDrop
+local WaterDrop = Class:derive("WaterDrop")
 
----Constructs the Player.
-function Player:new()
+---Constructs the WaterDrop.
+function WaterDrop:new()
     -- Parameters
     self.SCALE = 0.25
-    self.MAX_SPEED = 600
+    self.MAX_SPEED = 100
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    self.JUMP_SPEED = -1000
-    self.JUMP_GRACE_TIME_MAX = 0.1
 
     -- State
-    self.x, self.y = 100, 600
-    self.width, self.height = 64, 128
+    self.x, self.y = 1000, 600
+    self.width, self.height = 64, 80
     self.speedX, self.speedY = 0, 0
     self.accX, self.accY = 0, 0
     self.direction = "right"
     self.ground = nil
-    self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
 
     -- Physics
     self.physics = {}
@@ -32,41 +29,39 @@ function Player:new()
     self.physics.fixture = love.physics.newFixture(self.physics.body, self.physics.shape)
 
     -- Appearance
-    ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?}
     ---@type table<string, SpriteState>
     self.STATES = {
-        idle = {state = "idle", start = 1, frames = 6, framerate = 15},
-        run = {state = "run", start = 1, frames = 16, framerate = 30},
-        jump = {state = "jump", start = 1, frames = 9, framerate = 15, onFinish = "fall"},
-        fall = {state = "jump", start = 10, frames = 1, framerate = 15},
-        land = {state = "jump", start = 11, frames = 2, framerate = 15, onFinish = "idle"}
+        idle = {state = "idle", start = 1, frames = 4, framerate = 10},
+        rise = {state = "rise", start = 1, frames = 5, framerate = 10, onFinish = "move"},
+        move = {state = "move", start = 1, frames = 4, framerate = 10},
+        defeat = {state = "defeat", start = 1, frames = 5, framerate = 10, delOnFinish = true}
     }
-    self.sprites = _PLAYER_SPRITES
+    self.sprites = _WATER_DROP_SPRITES
     self.state = self.STATES.idle
     self.stateFrame = 1
     self.stateTime = 0
 end
 
----Updates the Player.
+---Updates the WaterDrop.
 ---@param dt number Time delta in seconds
-function Player:update(dt)
+function WaterDrop:update(dt)
     self:updatePhysics()
     self:move(dt)
     self:updateDirection()
     self:updateGravity(dt)
-    self:updateJumpGrace(dt)
     self:updateSprite(dt)
 end
 
-function Player:updatePhysics()
+function WaterDrop:updatePhysics()
     self.x, self.y = self.physics.body:getPosition()
     self.physics.body:setLinearVelocity(self.speedX, self.speedY)
 end
 
-function Player:move(dt)
+function WaterDrop:move(dt)
     -- Calculate the current acceleration.
-    local left = love.keyboard.isDown("a", "left")
-    local right = love.keyboard.isDown("d", "right")
+    local proximity = self:getProximityToPlayer()
+    local left = proximity > 40 and self.state == self.STATES.move and self.x > _LEVEL.player.x
+    local right = proximity > 40 and self.state == self.STATES.move and self.x < _LEVEL.player.x
     if left and not right then
         self.accX = -self.MAX_ACC
     elseif right and not left then
@@ -79,7 +74,7 @@ function Player:move(dt)
     self.speedX = math.min(math.max(self.speedX + self.accX * dt, -self.MAX_SPEED), self.MAX_SPEED)
 end
 
-function Player:applyDrag(dt)
+function WaterDrop:applyDrag(dt)
     if self.speedX > 0 then
         self.speedX = math.max(self.speedX - self.DRAG * dt, 0)
     else
@@ -87,7 +82,7 @@ function Player:applyDrag(dt)
     end
 end
 
-function Player:updateDirection()
+function WaterDrop:updateDirection()
     if self.accX > 0 then
         self.direction = "right"
     elseif self.accX < 0 then
@@ -95,54 +90,26 @@ function Player:updateDirection()
     end
 end
 
-function Player:updateGravity(dt)
+function WaterDrop:updateGravity(dt)
     if self.ground then
         return
     end
     self.speedY = self.speedY + self.GRAVITY * dt
 end
 
-function Player:updateJumpGrace(dt)
-    if self.ground then
-        self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
-    else
-        self.jumpGraceTime = self.jumpGraceTime - dt
-    end
-end
-
-function Player:jump()
-    if not self.ground and self.jumpGraceTime <= 0 then
-        return
-    end
-    self.ground = nil
-    self.speedY = self.JUMP_SPEED
-    self.jumpGraceTime = 0
-end
-
-function Player:landOn(ground)
+function WaterDrop:landOn(ground)
     self.ground = ground
     self.speedY = 0
 end
 
-function Player:updateSprite(dt)
-    local moving = self.speedX ~= 0 and (self.accX ~= 0 or math.abs(self.speedX) > 300)
-    local jumping = not self.ground and self.speedY < 0
-    local falling = not self.ground and self.speedY > 0
-    local landing = self.ground ~= nil
+function WaterDrop:updateSprite(dt)
+    local playerClose = self:getProximityToPlayer() < 200
     if self.state == self.STATES.idle then
-        self:setState("run", moving)
-        self:setState("jump", jumping)
-        self:setState("fall", falling)
-    elseif self.state == self.STATES.run then
-        self:setState("idle", not moving)
-        self:setState("jump", jumping)
-        self:setState("fall", falling)
-    elseif self.state == self.STATES.jump then
-        self:setState("land", landing)
-    elseif self.state == self.STATES.fall then
-        self:setState("land", landing)
-    elseif self.state == self.STATES.land then
-        self:setState("run", moving)
+        self:setState("rise", playerClose)
+    elseif self.state == self.STATES.rise then
+    elseif self.state == self.STATES.move then
+        self:setState("defeat", math.random() < 0.01)
+    elseif self.state == self.STATES.defeat then
     end
 
     -- Update the animation frame.
@@ -159,14 +126,17 @@ function Player:updateSprite(dt)
             else
                 self.stateFrame = self.state.start
             end
+            if self.state.delOnFinish then
+                self.delQueue = true
+            end
         end
     end
 end
 
----Sets a new state for this player, unless we already have that state.
+---Sets a new state for this WaterDrop, unless we already have that state.
 ---@param state string The new state.
 ---@param condition boolean? Optional condition. Must be satisfied to perform the change. Useful for compact code when you need to cram a lot of calls to this function in a row.
-function Player:setState(state, condition)
+function WaterDrop:setState(state, condition)
     -- Fail immediately if the condition is not satisfied.
     if condition == false then
         return
@@ -180,21 +150,23 @@ function Player:setState(state, condition)
     self.stateTime = 0
 end
 
+function WaterDrop:getProximityToPlayer()
+    return math.abs(self.x - _LEVEL.player.x)
+end
+
 ---Executed when key is pressed.
 ---@param key string The keycode.
-function Player:keypressed(key)
-    if key == "w" or key == "up" then
-        self:jump()
-    end
+function WaterDrop:keypressed(key)
+
 end
 
 ---Executed when key is released.
 ---@param key string The keycode.
-function Player:keyreleased(key)
+function WaterDrop:keyreleased(key)
 
 end
 
-function Player:beginContact(a, b, collision)
+function WaterDrop:beginContact(a, b, collision)
     if self.ground then
         return
     end
@@ -211,7 +183,7 @@ function Player:beginContact(a, b, collision)
     end
 end
 
-function Player:endContact(a, b, collision)
+function WaterDrop:endContact(a, b, collision)
     if a == self.physics.fixture then
         if self.ground == b then
             self.ground = nil
@@ -223,14 +195,14 @@ function Player:endContact(a, b, collision)
     end
 end
 
----Draws the Player on the screen.
-function Player:draw()
+---Draws the WaterDrop on the screen.
+function WaterDrop:draw()
     love.graphics.setColor(1, 1, 1)
     local img = self.sprites:getImage(self.state.state, self.stateFrame)
     local horizontalScale = self.direction == "right" and self.SCALE or -self.SCALE
-    love.graphics.draw(img, self.x, self.y - 28, 0, horizontalScale, self.SCALE, self.sprites.imageWidth / 2, self.sprites.imageHeight / 2)
+    love.graphics.draw(img, self.x, self.y - 70, 0, horizontalScale, self.SCALE, self.sprites.imageWidth / 2, self.sprites.imageHeight / 2)
 
     love.graphics.rectangle("line", self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
 end
 
-return Player
+return WaterDrop

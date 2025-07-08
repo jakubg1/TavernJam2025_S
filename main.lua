@@ -1,21 +1,27 @@
-local Vec2 = require("Vector2")
-local Spritesheet = require("Spritesheet")
 _Utils = require("com.utils")
 
+local Spritesheet = require("Spritesheet")
+local Player = require("Player")
+
 -- Globals
-_TEXT = "Let's write some code!"
-_POS = Vec2(100, 50)
 _PLAYER_SPRITES = Spritesheet("assets/player.png", 168, 244, 16, 3)
-_FRAME = 1
+_PLAYER = Player()
 
 function love.load()
 end
 
 function love.update(dt)
-	_FRAME = (_FRAME + dt * 10) % 6
+	_PLAYER:update(dt)
 end
 
 function love.draw()
-	love.graphics.print(_TEXT, _POS.x, _POS.y)
-	_PLAYER_SPRITES:drawFrame(math.floor(_FRAME) + 1, 100, 300)
+	_PLAYER:draw()
+end
+
+function love.keypressed(key)
+	_PLAYER:keypressed(key)
+end
+
+function love.keyreleased(key)
+	_PLAYER:keyreleased(key)
 end

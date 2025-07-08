@@ -13,6 +13,7 @@ function Player:new()
     self.DRAG = 2000
     self.GRAVITY = 2500
     self.JUMP_SPEED = -1000
+    self.JUMP_GRACE_TIME_MAX = 0.1
 
     -- State
     self.x, self.y = 100, 600
@@ -21,6 +22,7 @@ function Player:new()
     self.accX, self.accY = 0, 0
     self.direction = "right"
     self.ground = nil
+    self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
 
     -- Physics
     self.physics = {}
@@ -52,6 +54,7 @@ function Player:update(dt)
     self:move(dt)
     self:updateDirection()
     self:updateGravity(dt)
+    self:updateJumpGrace(dt)
     self:updateSprite(dt)
 end
 
@@ -64,24 +67,16 @@ function Player:move(dt)
     -- Calculate the current acceleration.
     local left = love.keyboard.isDown("a", "left")
     local right = love.keyboard.isDown("d", "right")
-    self.accX = 0
     if left and not right then
         self.accX = -self.MAX_ACC
     elseif right and not left then
         self.accX = self.MAX_ACC
-    end
-    -- Apply the acceleration.
-    self.speedX = self.speedX + self.accX * dt
-    -- Apply drag when the player is not accelerating but still moving.
-    if self.accX == 0 then
+    else
+        self.accX = 0
         self:applyDrag(dt)
     end
-    -- Cap the speed.
-    if self.speedX > self.MAX_SPEED then
-        self.speedX = self.MAX_SPEED
-    elseif self.speedX < -self.MAX_SPEED then
-        self.speedX = -self.MAX_SPEED
-    end
+    -- Apply the acceleration and cap the speed.
+    self.speedX = math.min(math.max(self.speedX + self.accX * dt, -self.MAX_SPEED), self.MAX_SPEED)
 end
 
 function Player:applyDrag(dt)
@@ -92,6 +87,14 @@ function Player:applyDrag(dt)
     end
 end
 
+function Player:updateDirection()
+    if self.accX > 0 then
+        self.direction = "right"
+    elseif self.accX < 0 then
+        self.direction = "left"
+    end
+end
+
 function Player:updateGravity(dt)
     if self.ground then
         return
@@ -99,17 +102,26 @@ function Player:updateGravity(dt)
     self.speedY = self.speedY + self.GRAVITY * dt
 end
 
+function Player:updateJumpGrace(dt)
+    if self.ground then
+        self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
+    else
+        self.jumpGraceTime = self.jumpGraceTime - dt
+    end
+end
+
+function Player:jump()
+    if not self.ground and self.jumpGraceTime <= 0 then
+        return
+    end
+    self.ground = nil
+    self.speedY = self.JUMP_SPEED
+    self.jumpGraceTime = 0
+end
+
 function Player:landOn(ground)
     self.ground = ground
     self.speedY = 0
-end
-
-function Player:updateDirection()
-    if self.accX > 0 then
-        self.direction = "right"
-    elseif self.accX < 0 then
-        self.direction = "left"
-    end
 end
 
 function Player:updateSprite(dt)
@@ -168,8 +180,8 @@ end
 ---Executed when key is pressed.
 ---@param key string The keycode.
 function Player:keypressed(key)
-    if (key == "w" or key == "up") and self.ground then
-        self.speedY = self.JUMP_SPEED
+    if key == "w" or key == "up" then
+        self:jump()
     end
 end
 

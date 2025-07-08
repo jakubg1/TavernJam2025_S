@@ -1,8 +1,8 @@
 _Utils = require("com.utils")
 
 local Spritesheet = require("Spritesheet")
-local Ground = require("Ground")
-local Player = require("Player")
+local Level = require("Level")
+local DialogText = require("DialogText")
 
 function love.load()
 	-- Resources
@@ -12,37 +12,34 @@ function love.load()
 	-- Game logic
 	_WORLD = love.physics.newWorld()
 	_WORLD:setCallbacks(_BeginContact, _EndContact)
-	_GROUND = Ground()
-	_PLAYER = Player()
+	_LEVEL = Level()
+
+	-- Tests
+	_TEXT = DialogText()
 end
 
 function love.update(dt)
 	_WORLD:update(dt)
-	_PLAYER:update(dt)
+	_LEVEL:update(dt)
 end
 
 function love.keypressed(key)
-	_PLAYER:keypressed(key)
+	_LEVEL:keypressed(key)
 end
 
 function love.keyreleased(key)
-	_PLAYER:keyreleased(key)
+	_LEVEL:keyreleased(key)
 end
 
 function love.draw()
-	_GROUND:draw()
-	_PLAYER:draw()
-
-	local x, y = love.mouse.getPosition()
-	love.graphics.rectangle("line", 100, 100, x - 100, y - 100)
-	love.graphics.setFont(_FONT_TMP)
-	love.graphics.printf({{1, 1, 1}, "You're a ", {1, 1, 0}, "HUMAN", {1, 1, 1}, " now and you gotta fight like one!"}, _FONT_TMP, 100, 100, x - 100)
+	_LEVEL:draw()
+	_TEXT:draw()
 end
 
 function _BeginContact(a, b, collision)
-	_PLAYER:beginContact(a, b, collision)
+	_LEVEL:beginContact(a, b, collision)
 end
 
 function _EndContact(a, b, collision)
-	_PLAYER:endContact(a, b, collision)
+	_LEVEL:endContact(a, b, collision)
 end

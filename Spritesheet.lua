@@ -31,14 +31,13 @@ end
 ---@param frame integer The frame index to be drawn.
 ---@param x number The X position of the frame.
 ---@param y number The Y position of the frame.
+---@param alignX number The X alignment of the frame.
+---@param alignY number The Y alignment of the frame.
 ---@param scale number The scale of the frame.
 ---@param flipX boolean? Whether the sprite should be flipped horizontally.
-function Spritesheet:drawFrame(frame, x, y, scale, flipX)
+function Spritesheet:drawFrame(frame, x, y, alignX, alignY, scale, flipX)
     local scaleX = flipX and -1 or 1
-    if flipX then
-        x = x + self.frameWidth * scale
-    end
-    love.graphics.draw(self.image, self.frames[frame], x, y, 0, scale * scaleX, scale)
+    love.graphics.draw(self.image, self.frames[frame], x, y, 0, scale * scaleX, scale, alignX * self.frameWidth, alignY * self.frameHeight)
 end
 
 return Spritesheet

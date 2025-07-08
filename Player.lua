@@ -16,7 +16,7 @@ function Player:new()
 
     -- State
     self.x, self.y = 100, 600
-    self.width, self.height = 168 * self.SCALE, 244 * self.SCALE
+    self.width, self.height = 80 * self.SCALE, 160 * self.SCALE
     self.speedX, self.speedY = 0, 0
     self.accX, self.accY = 0, 0
     self.direction = "right"
@@ -156,7 +156,6 @@ function Player:setSpriteState(state)
     if self.state.nextStates and not _Utils.isValueInTable(self.state.nextStates, state) then
         return
     end
-    print("state set to " .. state)
     self.state = self.SPRITE_STATES[state]
     self.stateFrame = self.state.start
     self.stateTime = 0
@@ -208,7 +207,7 @@ end
 ---Draws the Player on the screen.
 function Player:draw()
     love.graphics.setColor(1, 1, 1)
-    self.sprites:drawFrame(self.stateFrame, self.x, self.y + 5, 0.5, 0.5, self.SCALE, self.direction == "left")
+    self.sprites:drawFrame(self.stateFrame, self.x, self.y - 28, 0.5, 0.5, self.SCALE, self.direction == "left")
 
     love.graphics.rectangle("line", self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
 end

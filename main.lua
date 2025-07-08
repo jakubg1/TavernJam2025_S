@@ -6,7 +6,22 @@ local DialogText = require("DialogText")
 
 function love.load()
 	-- Resources
-	_PLAYER_SPRITES = Spritesheet("assets/player.png", 168, 244, 16, 3)
+    local playerSprites = {
+        directory = "assets/Player/",
+        states = {idle = 6, jump = 12, run = 16}
+    }
+	_PLAYER_SPRITES = Spritesheet(playerSprites)
+	local waterDropSprites = {
+		directory = "assets/Water_Drop/",
+		states = {defeat = 10, idle = 7, move = 8, rise = 10}
+	}
+	_WATER_DROP_SPRITES = Spritesheet(waterDropSprites)
+	local waterGirlSprites = {
+		directory = "assets/Water_Girl/",
+		states = {attack = 13, defeat = 5, idle = 5}
+	}
+	_WATER_GIRL_SPRITES = Spritesheet(waterGirlSprites)
+
 	_FONT_TMP = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
 
 	-- Game logic

@@ -7,7 +7,7 @@ local Player = Class:derive("Player")
 ---Constructs the Player.
 function Player:new()
     -- Parameters
-    self.SCALE = 0.8
+    self.SCALE = 0.25
     self.MAX_SPEED = 600
     self.MAX_ACC = 4000
     self.DRAG = 2000
@@ -17,7 +17,7 @@ function Player:new()
 
     -- State
     self.x, self.y = 100, 600
-    self.width, self.height = 80 * self.SCALE, 160 * self.SCALE
+    self.width, self.height = 64, 128
     self.speedX, self.speedY = 0, 0
     self.accX, self.accY = 0, 0
     self.direction = "right"
@@ -32,14 +32,14 @@ function Player:new()
     self.physics.fixture = love.physics.newFixture(self.physics.body, self.physics.shape)
 
     -- Appearance
-    ---@alias SpriteState {start: integer, frames: integer, framerate: number, nextStates: string[]?, onFinish: string?}
+    ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?}
     ---@type table<string, SpriteState>
     self.SPRITE_STATES = {
-        idle = {start = 1, frames = 6, framerate = 15, nextStates = {"jump", "run", "fall"}},
-        jump = {start = 17, frames = 9, framerate = 15, nextStates = {"fall", "land"}, onFinish = "fall"},
-        fall = {start = 26, frames = 1, framerate = 15, nextStates = {"land", "run"}},
-        land = {start = 27, frames = 2, framerate = 15, nextStates = {"idle", "run"}, onFinish = "idle"},
-        run = {start = 33, frames = 16, framerate = 30, nextStates = {"idle", "jump", "fall"}}
+        idle = {state = "idle", start = 1, frames = 6, framerate = 15},
+        run = {state = "run", start = 1, frames = 16, framerate = 30},
+        jump = {state = "jump", start = 1, frames = 9, framerate = 15, onFinish = "fall"},
+        fall = {state = "jump", start = 10, frames = 1, framerate = 15},
+        land = {state = "jump", start = 11, frames = 2, framerate = 15, onFinish = "idle"}
     }
     self.sprites = _PLAYER_SPRITES
     self.state = self.SPRITE_STATES.idle
@@ -125,25 +125,27 @@ function Player:landOn(ground)
 end
 
 function Player:updateSprite(dt)
-    local running = self.speedX ~= 0 and (self.accX ~= 0 or math.abs(self.speedX) > 300)
-    -- Change the state if we are not locked in the current one.
-    if not self.ground then
-        if self.speedY > 0 then
-            self:setSpriteState("fall")
-        else
-            self:setSpriteState("jump")
-        end
-    else
-        if running then
-            self:setSpriteState("run")
-        elseif self.state ~= self.SPRITE_STATES.land and self.state ~= self.SPRITE_STATES.fall then
-            self:setSpriteState("idle")
-        else
-            self:setSpriteState("land")
-        end
+    local moving = self.speedX ~= 0 and (self.accX ~= 0 or math.abs(self.speedX) > 300)
+    local jumping = not self.ground and self.speedY < 0
+    local falling = not self.ground and self.speedY > 0
+    local landing = self.ground ~= nil
+    if self.state == self.SPRITE_STATES.idle then
+        self:setSpriteState("run", moving)
+        self:setSpriteState("jump", jumping)
+        self:setSpriteState("fall", falling)
+    elseif self.state == self.SPRITE_STATES.run then
+        self:setSpriteState("idle", not moving)
+        self:setSpriteState("jump", jumping)
+        self:setSpriteState("fall", falling)
+    elseif self.state == self.SPRITE_STATES.jump then
+        self:setSpriteState("land", landing)
+    elseif self.state == self.SPRITE_STATES.fall then
+        self:setSpriteState("land", landing)
+    elseif self.state == self.SPRITE_STATES.land then
+        self:setSpriteState("run", moving)
     end
 
-    -- Update the animation state.
+    -- Update the animation frame.
     self.stateTime = self.stateTime + dt
     while self.stateTime > 1 / self.state.framerate do
         -- Advance to next frame.
@@ -163,13 +165,14 @@ end
 
 ---Sets a new sprite state for this player, unless we already have that state.
 ---@param state string The new state.
-function Player:setSpriteState(state)
-    -- Cannot transition into the same state.
-    if self.state == self.SPRITE_STATES[state] then
+---@param condition boolean? Optional condition. Must be satisfied to perform the change. Useful for compact code when you need to cram a lot of calls to this function in a row.
+function Player:setSpriteState(state, condition)
+    -- Fail immediately if the condition is not satisfied.
+    if condition == false then
         return
     end
-    -- Cannot transition into a state we can't transition to.
-    if self.state.nextStates and not _Utils.isValueInTable(self.state.nextStates, state) then
+    -- Cannot transition into the same state.
+    if self.state == self.SPRITE_STATES[state] then
         return
     end
     self.state = self.SPRITE_STATES[state]
@@ -223,7 +226,9 @@ end
 ---Draws the Player on the screen.
 function Player:draw()
     love.graphics.setColor(1, 1, 1)
-    self.sprites:drawFrame(self.stateFrame, self.x, self.y - 28, 0.5, 0.5, self.SCALE, self.direction == "left")
+    local img = _PLAYER_SPRITES:getImage(self.state.state, self.stateFrame)
+    local horizontalScale = self.direction == "right" and self.SCALE or -self.SCALE
+    love.graphics.draw(img, self.x, self.y - 28, 0, horizontalScale, self.SCALE, _PLAYER_SPRITES.imageWidth / 2, _PLAYER_SPRITES.imageHeight / 2)
 
     love.graphics.rectangle("line", self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
 end

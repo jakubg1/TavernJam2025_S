@@ -16,6 +16,8 @@ function Level:new()
         WaterDrop(),
         WaterDrop()
     }
+
+    self.cameraX = 0
 end
 
 function Level:update(dt)
@@ -24,6 +26,8 @@ function Level:update(dt)
         enemy:update(dt)
     end
     _Utils.removeDeadObjects(self.enemies)
+
+    self.cameraX = self.player.x
 end
 
 function Level:keypressed(key)
@@ -35,11 +39,16 @@ function Level:keyreleased(key)
 end
 
 function Level:draw()
+    love.graphics.setColor(1, 0.8, 0.4)
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+    love.graphics.push()
+    love.graphics.translate(-self.cameraX + love.graphics.getWidth() / 2, 0)
     self.ground:draw()
     self.player:draw()
     for i, enemy in ipairs(self.enemies) do
         enemy:draw()
     end
+    love.graphics.pop()
 end
 
 function Level:beginContact(a, b, contact)

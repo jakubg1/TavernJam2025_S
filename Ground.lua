@@ -6,8 +6,8 @@ local Ground = Class:derive("Ground")
 
 ---Temporary ground until we have proper Tiled support.
 function Ground:new()
-    self.x, self.y = 1000, 800
-    self.width, self.height = 2000, 10
+    self.x, self.y = 1000, 900
+    self.width, self.height = 2000, 200
 
     self.physics = {}
     self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "static")
@@ -16,7 +16,7 @@ function Ground:new()
 end
 
 function Ground:draw()
-    love.graphics.setColor(0, 0.5, 0)
+    love.graphics.setColor(0.1, 0.6, 0.1)
     love.graphics.rectangle("fill", self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
 end
 

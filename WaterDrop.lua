@@ -127,7 +127,7 @@ function WaterDrop:updateSprite(dt)
                 self.stateFrame = self.state.start
             end
             if self.state.delOnFinish then
-                self.delQueue = true
+                self:destroy()
             end
         end
     end
@@ -152,6 +152,15 @@ end
 
 function WaterDrop:getProximityToPlayer()
     return math.abs(self.x - _LEVEL.player.x)
+end
+
+---Destroys this Water Drop, its physics body and makes it ready to be removed.
+function WaterDrop:destroy()
+    if self.delQueue then
+        return
+    end
+    self.delQueue = true
+    self.physics.body:destroy()
 end
 
 ---Executed when key is pressed.

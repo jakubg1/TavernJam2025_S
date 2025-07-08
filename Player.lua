@@ -33,11 +33,11 @@ function Player:new()
     ---@alias SpriteState {start: integer, frames: integer, framerate: number, nextStates: string[]?, onFinish: string?}
     ---@type table<string, SpriteState>
     self.SPRITE_STATES = {
-        idle = {start = 1, frames = 6, framerate = 15, nextStates = {"jump", "run"}},
+        idle = {start = 1, frames = 6, framerate = 15, nextStates = {"jump", "run", "fall"}},
         jump = {start = 17, frames = 9, framerate = 15, nextStates = {"fall", "land"}, onFinish = "fall"},
         fall = {start = 26, frames = 1, framerate = 15, nextStates = {"land", "run"}},
         land = {start = 27, frames = 2, framerate = 15, nextStates = {"idle", "run"}, onFinish = "idle"},
-        run = {start = 33, frames = 16, framerate = 30, nextStates = {"idle", "jump"}}
+        run = {start = 33, frames = 16, framerate = 30, nextStates = {"idle", "jump", "fall"}}
     }
     self.sprites = _PLAYER_SPRITES
     self.state = self.SPRITE_STATES.idle
@@ -116,7 +116,11 @@ function Player:updateSprite(dt)
     local running = self.speedX ~= 0 and (self.accX ~= 0 or math.abs(self.speedX) > 300)
     -- Change the state if we are not locked in the current one.
     if not self.ground then
-        self:setSpriteState("jump")
+        if self.speedY > 0 then
+            self:setSpriteState("fall")
+        else
+            self:setSpriteState("jump")
+        end
     else
         if running then
             self:setSpriteState("run")

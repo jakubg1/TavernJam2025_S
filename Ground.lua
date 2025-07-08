@@ -6,8 +6,8 @@ local Ground = Class:derive("Ground")
 
 ---Temporary ground until we have proper Tiled support.
 function Ground:new()
-    self.x, self.y = 800, 800
-    self.width, self.height = 1600, 10
+    self.x, self.y = 600, 800
+    self.width, self.height = 1000, 10
 
     self.physics = {}
     self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "static")

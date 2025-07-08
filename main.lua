@@ -13,7 +13,7 @@ function love.load()
 	_PLAYER_SPRITES = Spritesheet(playerSprites)
 	local waterDropSprites = {
 		directory = "assets/Water_Drop/",
-		states = {defeat = 10, idle = 7, move = 8, rise = 10}
+		states = {defeat = 5, idle = 4, move = 4, rise = 5}
 	}
 	_WATER_DROP_SPRITES = Spritesheet(waterDropSprites)
 	local waterGirlSprites = {

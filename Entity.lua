@@ -127,19 +127,18 @@ end
 ---Draws the Entity on the screen.
 function Entity:draw()
     self:drawSprite()
-    --self:drawFlash()
-    --self:drawHitbox()
+    self:drawHitbox()
 end
 
 function Entity:drawSprite()
     love.graphics.setColor(1, 1, 1)
-    local img = self.sprites:getImage(self.state.state, self.stateFrame)
+    local img = self.SPRITES:getImage(self.state.state, self.stateFrame)
     local x = self.x + self.OFFSET_X
     local y = self.y + self.OFFSET_Y
     local scaleX = (self.direction == "right" or self.state.noFlip) and self.SCALE or -self.SCALE
     local scaleY = self.SCALE
-    local width = self.sprites.imageWidth / 2
-    local height = self.sprites.imageHeight / 2
+    local width = self.SPRITES.imageWidth / 2
+    local height = self.SPRITES.imageHeight / 2
     if self.flashTime > 0 then
         love.graphics.setShader(_WHITE_SHADER)
     end
@@ -147,21 +146,6 @@ function Entity:drawSprite()
     if self.flashTime > 0 then
         love.graphics.setShader()
     end
-end
-
-function Entity:drawFlash()
-    if self.flashTime == 0 then
-        return
-    end
-    love.graphics.stencil(function() self:drawSprite() end)
-    love.graphics.setStencilTest("equal", 1)
-    love.graphics.setColor(1, 1, 1)
-    local x = self.x + self.OFFSET_X - self.sprites.imageWidth / 2
-    local y = self.y + self.OFFSET_Y - self.sprites.imageHeight / 2
-    local width = self.sprites.imageWidth
-    local height = self.sprites.imageHeight
-    love.graphics.rectangle("fill", x, y, width, height)
-    love.graphics.setStencilTest()
 end
 
 function Entity:drawHitbox()

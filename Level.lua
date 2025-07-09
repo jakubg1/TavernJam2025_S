@@ -9,7 +9,12 @@ local Player = require("Player")
 local WaterDrop = require("WaterDrop")
 
 function Level:new()
-	self.ground = Ground(1000, 900, 2000, 200)
+    self.grounds = {
+        Ground(1000, 900, 2000, 200),
+        Ground(1200, 650, 300, 15),
+        Ground(1300, 500, 300, 15),
+        Ground(1400, 350, 300, 15)
+    }
 	self.player = Player(100, 800)
     self.enemies = {
         WaterDrop(1000, 800),
@@ -43,7 +48,9 @@ function Level:draw()
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
     love.graphics.push()
     love.graphics.translate(-self.cameraX + love.graphics.getWidth() / 2, 0)
-    self.ground:draw()
+    for i, ground in ipairs(self.grounds) do
+        ground:draw()
+    end
     self.player:draw()
     for i, enemy in ipairs(self.enemies) do
         enemy:draw()

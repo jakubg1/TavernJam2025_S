@@ -6,12 +6,10 @@ local Player = Entity:derive("Player")
 
 ---Constructs the Player.
 function Player:new(x, y)
-    -- Prepend default fields
-    self.super:new(x, y)
-
     -- Parameters
     self.WIDTH, self.HEIGHT = 64, 128
     self.SCALE = 0.25
+    self.OFFSET_X, self.OFFSET_Y = 0, -28
     self.MAX_SPEED = 600
     self.MAX_ACC = 4000
     self.DRAG = 2000
@@ -19,7 +17,21 @@ function Player:new(x, y)
     self.JUMP_SPEED = -1000
     self.JUMP_DELAY_MAX = 1/15
     self.JUMP_GRACE_TIME_MAX = 0.1
-    self.OFFSET_X, self.OFFSET_Y = 0, -28
+    self.KNOCK_TIME_MAX = 0.3
+    ---@type table<string, SpriteState>
+    self.STATES = {
+        idle = {state = "idle", start = 1, frames = 6, framerate = 15},
+        run = {state = "run", start = 1, frames = 16, framerate = 30},
+        jumpPrep = {state = "jump", start = 1, frames = 2, framerate = 30, onFinish = "jump"},
+        jump = {state = "jump", start = 3, frames = 5, framerate = 15, onFinish = "fall"},
+        fall = {state = "jump", start = 8, frames = 1, framerate = 15},
+        land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"}
+    }
+    self.STARTING_STATE = self.STATES.idle
+    self.SPRITES = _PLAYER_SPRITES
+
+    -- Prepend default fields
+    self.super:new(x, y)
 
     -- State
     self.x, self.y = x, y
@@ -30,6 +42,7 @@ function Player:new(x, y)
     self.ground = nil
     self.jumpDelay = nil
     self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
+    self.knockTime = nil -- Makes the player ignore max speed and removes player control.
 
     -- Physics
     self.physics = {}
@@ -39,17 +52,7 @@ function Player:new(x, y)
     self.physics.fixture = love.physics.newFixture(self.physics.body, self.physics.shape)
 
     -- Appearance
-    ---@type table<string, SpriteState>
-    self.STATES = {
-        idle = {state = "idle", start = 1, frames = 6, framerate = 15},
-        run = {state = "run", start = 1, frames = 16, framerate = 30},
-        jumpPrep = {state = "jump", start = 1, frames = 2, framerate = 30, onFinish = "jump"},
-        jump = {state = "jump", start = 3, frames = 5, framerate = 15, onFinish = "fall"},
-        fall = {state = "jump", start = 8, frames = 1, framerate = 15},
-        land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"}
-    }
-    self.state = self.STATES.idle
-    self.sprites = _PLAYER_SPRITES
+    self.state = self.STARTING_STATE
     self.stateFrame = 1
     self.stateTime = 0
 end
@@ -60,6 +63,7 @@ function Player:update(dt)
     self:move(dt)
     self:updateJumpDelay(dt)
     self:updateJumpGrace(dt)
+    self:updateKnock(dt)
     -- Entity-related (this always needs to be here)
     self:updateDirection()
     self:updateGravity(dt)
@@ -73,7 +77,9 @@ function Player:move(dt)
     -- Calculate the current acceleration.
     local left = love.keyboard.isDown("a", "left")
     local right = love.keyboard.isDown("d", "right")
-    if left and not right then
+    if self.knockTime then
+        self.accX = 0
+    elseif left and not right then
         self.accX = -self.MAX_ACC
     elseif right and not left then
         self.accX = self.MAX_ACC
@@ -91,6 +97,7 @@ function Player:updateJumpDelay(dt)
     end
     self.jumpDelay = math.max(self.jumpDelay - dt, 0)
     if self.jumpDelay == 0 then
+        -- We need to reset ground here, because `endContact` will trigger in the next frame, causing the `jumpPrep` state to repeat.
         self.ground = nil
         self.speedY = self.JUMP_SPEED
         self.jumpDelay = nil
@@ -105,6 +112,16 @@ function Player:updateJumpGrace(dt)
     end
 end
 
+function Player:updateKnock(dt)
+    if not self.knockTime then
+        return
+    end
+    self.knockTime = math.max(self.knockTime - dt, 0)
+    if self.knockTime == 0 then
+        self.knockTime = nil
+    end
+end
+
 function Player:jump()
     if (not self.ground and self.jumpGraceTime <= 0) or self.jumpDelay then
         return
@@ -116,6 +133,18 @@ end
 function Player:landOn(ground)
     self.ground = ground
     self.speedY = 0
+    self.knockTime = nil
+end
+
+function Player:knock(speedX, speedY)
+    self.speedX = speedX
+    self.speedY = speedY
+    self.knockTime = self.KNOCK_TIME_MAX
+end
+
+function Player:hurt(direction)
+    self:knock(direction == "left" and -600 or 600, -400)
+    self:flash()
 end
 
 function Player:updateState()
@@ -147,7 +176,6 @@ end
 function Player:keypressed(key)
     if key == "w" or key == "up" then
         self:jump()
-        self:flash()
     end
 end
 
@@ -160,10 +188,16 @@ function Player:beginContact(a, b, collision)
     if a == self.physics.fixture then
         if ny > 0 then
             self:landOn(b)
+        elseif ny < 0 then
+            -- Bounce off the ceiling.
+            self.speedY = 0
         end
     elseif b == self.physics.fixture then
         if ny < 0 then
             self:landOn(a)
+        elseif ny > 0 then
+            -- Bounce off the ceiling.
+            self.speedY = 0
         end
     end
 end

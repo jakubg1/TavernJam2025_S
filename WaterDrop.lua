@@ -6,19 +6,28 @@ local WaterDrop = Entity:derive("WaterDrop")
 
 ---Constructs the WaterDrop.
 function WaterDrop:new(x, y)
-    -- Prepend default fields
-    self.super:new(x, y)
-
     -- Parameters
     self.WIDTH, self.HEIGHT = 64, 80
     self.SCALE = 0.25
+    self.OFFSET_X, self.OFFSET_Y = 0, -70
     self.MAX_SPEED = 100
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
     self.STRAFE_RANGE = 100
     self.PLAYER_DETECTION_RANGE = 200
-    self.OFFSET_X, self.OFFSET_Y = 0, -70
+    ---@type table<string, SpriteState>
+    self.STATES = {
+        idle = {state = "idle", start = 1, frames = 4, framerate = 10, noFlip = true},
+        rise = {state = "rise", start = 1, frames = 5, framerate = 10, onFinish = "move"},
+        move = {state = "move", start = 1, frames = 4, framerate = 10},
+        defeat = {state = "defeat", start = 1, frames = 5, framerate = 10, delOnFinish = true}
+    }
+    self.STARTING_STATE = self.STATES.idle
+    self.SPRITES = _WATER_DROP_SPRITES
+
+    -- Prepend default fields
+    self.super:new(x, y)
 
     -- State
     self.x, self.y = x, y
@@ -33,19 +42,12 @@ function WaterDrop:new(x, y)
     self.physics = {}
     self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "dynamic")
     self.physics.body:setFixedRotation(true)
+    self.physics.body:setMass(25)
     self.physics.shape = love.physics.newRectangleShape(self.WIDTH, self.HEIGHT)
     self.physics.fixture = love.physics.newFixture(self.physics.body, self.physics.shape)
 
     -- Appearance
-    ---@type table<string, SpriteState>
-    self.STATES = {
-        idle = {state = "idle", start = 1, frames = 4, framerate = 10, noFlip = true},
-        rise = {state = "rise", start = 1, frames = 5, framerate = 10, onFinish = "move"},
-        move = {state = "move", start = 1, frames = 4, framerate = 10},
-        defeat = {state = "defeat", start = 1, frames = 5, framerate = 10, delOnFinish = true}
-    }
-    self.state = self.STATES.idle
-    self.sprites = _WATER_DROP_SPRITES
+    self.state = self.STARTING_STATE
     self.stateFrame = 1
     self.stateTime = 0
 end
@@ -111,10 +113,18 @@ function WaterDrop:getProximityToPlayer()
 end
 
 function WaterDrop:beginContact(a, b, collision)
+    local nx, ny = collision:getNormal()
+    -- Handle hurting the player.
+    local player = _LEVEL.player
+    if a == self.physics.fixture and b == player.physics.fixture then
+        player:hurt(nx < 0 and "left" or "right")
+    elseif a == player.physics.fixture and b == self.physics.fixture then
+        player:hurt(nx > 0 and "left" or "right")
+    end
+    -- Handle ground contact.
     if self.ground then
         return
     end
-    local nx, ny = collision:getNormal()
     -- We can be either `a` or `b` in the collision.
     if a == self.physics.fixture then
         if ny > 0 then

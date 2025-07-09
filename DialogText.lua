@@ -17,7 +17,7 @@ function DialogText:draw()
     love.graphics.setColor(0, 0, 0, 0.5)
 	love.graphics.rectangle("fill", self.x, self.y, x - self.x, y - self.y)
     love.graphics.setColor(1, 1, 1)
-	love.graphics.printf(self.text, self.font, self.x, self.y, x - self.x)
+	love.graphics.printf(self.text, self.font, self.x + 10, self.y + 10, x - self.x - 20)
 end
 
 return DialogText

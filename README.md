@@ -12,8 +12,15 @@ Have fun!
 
 ## Credits
 
-I made the code! This as usual is licensed under MIT license.
+I wrote most of the code! This as usual is licensed under MIT license.
 
-Sprites are courtesy of fs3k! License pending, it's not that important yet.
+Some parts have been taken from Jasper's series of videos on how to make platformers.
+Mostly physics reference has been taken from there.
 
-Lambda font is licensed under the SIL Open Font License, Version 1.1.
+This repository contains code and other assets from the following sources:
+
+- Class implementation from https://github.com/bncastle/love2d-tutorial/blob/Episode4/class.lua (MIT license)
+- JSON decoder/encoder implementation from https://github.com/rxi/json.lua (MIT license)
+- Platformer demo from https://github.com/Jeepzor/Platformer-tutorial (WTFPL license)
+- Sprites are courtesy of fs3k! License pending, it's not that important yet.
+- Lambda font is licensed under the SIL Open Font License, Version 1.1.

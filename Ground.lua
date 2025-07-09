@@ -16,7 +16,7 @@ function Ground:new(x, y, width, height)
 end
 
 function Ground:draw()
-    love.graphics.setColor(0.1, 0.6, 0.1)
+    love.graphics.setColor(0.5, 0.7, 0.2)
     love.graphics.rectangle("fill", self.x - self.width / 2, self.y - self.height / 2, self.width, self.height)
 end
 

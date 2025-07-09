@@ -49,7 +49,7 @@ function Level:keyreleased(key)
 end
 
 function Level:draw()
-    love.graphics.setColor(0.8, 0.7, 0.5)
+    love.graphics.setColor(0.3, 0.8, 1)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
     love.graphics.push()
     love.graphics.translate(-self.cameraX + love.graphics.getWidth() / 2, 0)

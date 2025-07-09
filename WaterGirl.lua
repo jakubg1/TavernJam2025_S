@@ -27,8 +27,8 @@ function WaterGirl:new(x, y)
     -- Water Girl exclusive parameters
     self.ATTACK_RANGE = 135 -- The width of attack hitboxes
     self.ATTACK_PROXIMITY = self.ATTACK_RANGE + 100 -- The amount of pixels in front of which she will attack
-    self.ATTACK_COOLDOWN_MIN = 3
-    self.ATTACK_COOLDOWN_MAX = 5
+    self.ATTACK_COOLDOWN_MIN = 1.5
+    self.ATTACK_COOLDOWN_MAX = 2.5
 
     -- Physics
     ---@type table<string, PhysicsShape>

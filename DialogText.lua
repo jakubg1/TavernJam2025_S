@@ -12,8 +12,11 @@ function DialogText:new()
 end
 
 function DialogText:draw()
-	local x, y = love.mouse.getPosition()
-	love.graphics.rectangle("line", self.x, self.y, x - self.x, y - self.y)
+	--local x, y = love.mouse.getPosition()
+    local x, y = 850, 250
+    love.graphics.setColor(0, 0, 0, 0.5)
+	love.graphics.rectangle("fill", self.x, self.y, x - self.x, y - self.y)
+    love.graphics.setColor(1, 1, 1)
 	love.graphics.printf(self.text, self.font, self.x, self.y, x - self.x)
 end
 

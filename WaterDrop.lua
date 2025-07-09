@@ -1,11 +1,11 @@
 local Class = require("com.class")
 
 ---@class WaterDrop : Class
----@overload fun(): WaterDrop
+---@overload fun(x, y): WaterDrop
 local WaterDrop = Class:derive("WaterDrop")
 
 ---Constructs the WaterDrop.
-function WaterDrop:new()
+function WaterDrop:new(x, y)
     -- Parameters
     self.SCALE = 0.25
     self.MAX_SPEED = 100
@@ -14,7 +14,7 @@ function WaterDrop:new()
     self.GRAVITY = 2500
 
     -- State
-    self.x, self.y = 1000, 600
+    self.x, self.y = x, y
     self.width, self.height = 64, 80
     self.speedX, self.speedY = 0, 0
     self.accX, self.accY = 0, 0

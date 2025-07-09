@@ -1,11 +1,11 @@
 local Class = require("com.class")
 
 ---@class Player : Class
----@overload fun(): Player
+---@overload fun(x, y): Player
 local Player = Class:derive("Player")
 
 ---Constructs the Player.
-function Player:new()
+function Player:new(x, y)
     -- Parameters
     self.SCALE = 0.25
     self.MAX_SPEED = 600
@@ -16,7 +16,7 @@ function Player:new()
     self.JUMP_GRACE_TIME_MAX = 0.1
 
     -- State
-    self.x, self.y = 100, 600
+    self.x, self.y = x, y
     self.width, self.height = 64, 128
     self.speedX, self.speedY = 0, 0
     self.accX, self.accY = 0, 0

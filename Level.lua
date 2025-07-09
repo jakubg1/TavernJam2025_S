@@ -10,11 +10,11 @@ local WaterDrop = require("WaterDrop")
 
 function Level:new()
 	self.ground = Ground()
-	self.player = Player()
+	self.player = Player(100, 800)
     self.enemies = {
-        WaterDrop(),
-        WaterDrop(),
-        WaterDrop()
+        WaterDrop(1000, 800),
+        WaterDrop(900, 800),
+        WaterDrop(800, 800)
     }
 
     self.cameraX = 0
@@ -39,7 +39,7 @@ function Level:keyreleased(key)
 end
 
 function Level:draw()
-    love.graphics.setColor(1, 0.8, 0.4)
+    love.graphics.setColor(0.8, 0.7, 0.5)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
     love.graphics.push()
     love.graphics.translate(-self.cameraX + love.graphics.getWidth() / 2, 0)

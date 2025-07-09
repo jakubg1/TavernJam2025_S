@@ -8,6 +8,9 @@ local Entity = Class:derive("Entity")
 ---@param x number
 ---@param y number
 function Entity:new(x, y)
+    -- Default parameters
+    --self.FLIP_AXIS_OFFSET = 0
+
     -- State
     self.x, self.y = x, y
     self.homeX, self.homeY = x, y
@@ -22,6 +25,12 @@ function Entity:new(x, y)
     self.stateTime = 0
     ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
     self.flashTime = 0
+end
+
+-- Applies the acceleration and caps the speed.
+---@param dt number Time delta in seconds.
+function Entity:updateMovement(dt)
+    self.speedX = math.min(math.max(self.speedX + self.accX * dt, -self.MAX_SPEED), self.MAX_SPEED)
 end
 
 ---Slows the entity down on horizontal axis based on the `self.DRAG` parameter.
@@ -103,6 +112,13 @@ function Entity:setState(state, condition)
     self.stateTime = 0
 end
 
+---Lands this Entity on the provided ground.
+---@param ground love.Body The ground physics body.
+function Entity:landOn(ground)
+    self.ground = ground
+    self.speedY = 0
+end
+
 ---Updates the flash timer.
 ---@param dt number Time delta in seconds.
 function Entity:updateFlash(dt)
@@ -146,9 +162,10 @@ function Entity:drawSprite()
     love.graphics.setColor(1, 1, 1)
     local frame = self.state.reverse and self.state.frames - self.stateFrame + 1 or self.stateFrame
     local img = self.SPRITES:getImage(self.state.state, frame)
-    local x = self.x + self.OFFSET_X
+    local flipped = self.direction == "left" and not self.state.noFlip
+    local x = self.x + self.OFFSET_X + (flipped and self.FLIP_AXIS_OFFSET or -self.FLIP_AXIS_OFFSET)
     local y = self.y + self.OFFSET_Y
-    local scaleX = (self.direction == "right" or self.state.noFlip) and self.SCALE or -self.SCALE
+    local scaleX = flipped and -self.SCALE or self.SCALE
     local scaleY = self.SCALE
     local width = self.SPRITES.imageWidth / 2
     local height = self.SPRITES.imageHeight / 2

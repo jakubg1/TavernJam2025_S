@@ -10,6 +10,7 @@ function WaterDrop:new(x, y)
     self.WIDTH, self.HEIGHT = 64, 80
     self.SCALE = 0.25
     self.OFFSET_X, self.OFFSET_Y = 0, -70
+    self.FLIP_AXIS_OFFSET = 0
     self.MAX_SPEED = 100
     self.MAX_ACC = 4000
     self.DRAG = 2000
@@ -25,6 +26,7 @@ function WaterDrop:new(x, y)
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _WATER_DROP_SPRITES
 
+    -- Water Drop exclusive parameters
     self.STRAFE_RANGE = 100
     self.PLAYER_DETECTION_RANGE = 200
     self.SLEEP_DELAY_MAX = 3
@@ -52,6 +54,7 @@ function WaterDrop:update(dt)
     self:move(dt)
     self:updateSleep(dt)
     -- Entity-related (this always needs to be here)
+    self:updateMovement(dt)
     self:updateDirection()
     self:updateGravity(dt)
     self:updatePhysics()
@@ -84,8 +87,6 @@ function WaterDrop:move(dt)
         self.accX = 0
         self:applyDrag(dt)
     end
-    -- Apply the acceleration and cap the speed.
-    self.speedX = math.min(math.max(self.speedX + self.accX * dt, -self.MAX_SPEED), self.MAX_SPEED)
 end
 
 function WaterDrop:updateSleep(dt)
@@ -93,11 +94,6 @@ function WaterDrop:updateSleep(dt)
         self.sleepDelay = self.SLEEP_DELAY_MAX
     end
     self.sleepDelay = math.max(self.sleepDelay - dt, 0)
-end
-
-function WaterDrop:landOn(ground)
-    self.ground = ground
-    self.speedY = 0
 end
 
 function WaterDrop:updateState()

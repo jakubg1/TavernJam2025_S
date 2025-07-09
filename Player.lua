@@ -10,6 +10,7 @@ function Player:new(x, y)
     self.WIDTH, self.HEIGHT = 64, 128
     self.SCALE = 0.25
     self.OFFSET_X, self.OFFSET_Y = 0, -28
+    self.FLIP_AXIS_OFFSET = 0
     self.MAX_SPEED = 600
     self.MAX_ACC = 4000
     self.DRAG = 2000
@@ -26,6 +27,7 @@ function Player:new(x, y)
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _PLAYER_SPRITES
 
+    -- Player exclusive parameters
     self.JUMP_SPEED = -1000
     self.JUMP_DELAY_MAX = 1/15
     self.JUMP_GRACE_TIME_MAX = 0.1
@@ -55,6 +57,7 @@ function Player:update(dt)
     self:updateJumpGrace(dt)
     self:updateKnock(dt)
     -- Entity-related (this always needs to be here)
+    self:updateMovement(dt)
     self:updateDirection()
     self:updateGravity(dt)
     self:updatePhysics()
@@ -77,8 +80,6 @@ function Player:move(dt)
         self.accX = 0
         self:applyDrag(dt)
     end
-    -- Apply the acceleration and cap the speed.
-    self.speedX = math.min(math.max(self.speedX + self.accX * dt, -self.MAX_SPEED), self.MAX_SPEED)
 end
 
 function Player:updateJumpDelay(dt)
@@ -118,12 +119,6 @@ function Player:jump()
     end
     self.jumpDelay = self.JUMP_DELAY_MAX
     self.jumpGraceTime = 0
-end
-
-function Player:landOn(ground)
-    self.ground = ground
-    self.speedY = 0
-    self.knockTime = nil
 end
 
 function Player:knock(speedX, speedY)
@@ -178,6 +173,7 @@ function Player:beginContact(a, b, collision)
     if a == self.physics.fixture then
         if ny > 0 then
             self:landOn(b)
+            self.knockTime = nil
         elseif ny < 0 then
             -- Bounce off the ceiling.
             self.speedY = 0
@@ -185,6 +181,7 @@ function Player:beginContact(a, b, collision)
     elseif b == self.physics.fixture then
         if ny < 0 then
             self:landOn(a)
+            self.knockTime = nil
         elseif ny > 0 then
             -- Bounce off the ceiling.
             self.speedY = 0

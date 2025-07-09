@@ -1,13 +1,13 @@
 local Class = require("com.class")
 
 ---@class Ground : Class
----@overload fun(): Ground
+---@overload fun(x, y, width, height): Ground
 local Ground = Class:derive("Ground")
 
 ---Temporary ground until we have proper Tiled support.
-function Ground:new()
-    self.x, self.y = 1000, 900
-    self.width, self.height = 2000, 200
+function Ground:new(x, y, width, height)
+    self.x, self.y = x, y
+    self.width, self.height = width, height
 
     self.physics = {}
     self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "static")

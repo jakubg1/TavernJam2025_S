@@ -9,7 +9,7 @@ local Player = require("Player")
 local WaterDrop = require("WaterDrop")
 
 function Level:new()
-	self.ground = Ground()
+	self.ground = Ground(1000, 900, 2000, 200)
 	self.player = Player(100, 800)
     self.enemies = {
         WaterDrop(1000, 800),

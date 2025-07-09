@@ -8,7 +8,7 @@ function love.load()
 	-- Resources
     local playerSprites = {
         directory = "assets/Player/",
-        states = {idle = 6, jump = 12, run = 16}
+        states = {idle = 6, jump = 10, run = 16}
     }
 	_PLAYER_SPRITES = Spritesheet(playerSprites)
 	local waterDropSprites = {
@@ -23,6 +23,7 @@ function love.load()
 	_WATER_GIRL_SPRITES = Spritesheet(waterGirlSprites)
 
 	_FONT_TMP = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
+	_WHITE_SHADER = love.graphics.newShader("assets/whiten.glsl")
 
 	-- Game logic
 	_WORLD = love.physics.newWorld()
@@ -34,6 +35,9 @@ function love.load()
 end
 
 function love.update(dt)
+	if love.keyboard.isDown("space") then
+		dt = dt / 5
+	end
 	_WORLD:update(dt)
 	_LEVEL:update(dt)
 end

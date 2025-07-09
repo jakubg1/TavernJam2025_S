@@ -14,10 +14,6 @@ function Player:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    self.JUMP_SPEED = -1000
-    self.JUMP_DELAY_MAX = 1/15
-    self.JUMP_GRACE_TIME_MAX = 0.1
-    self.KNOCK_TIME_MAX = 0.3
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 6, framerate = 15},
@@ -30,16 +26,15 @@ function Player:new(x, y)
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _PLAYER_SPRITES
 
+    self.JUMP_SPEED = -1000
+    self.JUMP_DELAY_MAX = 1/15
+    self.JUMP_GRACE_TIME_MAX = 0.1
+    self.KNOCK_TIME_MAX = 0.3
+
     -- Prepend default fields
-    self.super:new(x, y)
+    self.super.new(self, x, y)
 
     -- State
-    self.x, self.y = x, y
-    self.homeX, self.homeY = x, y
-    self.speedX, self.speedY = 0, 0
-    self.accX, self.accY = 0, 0
-    self.direction = "right"
-    self.ground = nil
     self.jumpDelay = nil
     self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
     self.knockTime = nil -- Makes the player ignore max speed and removes player control.
@@ -50,11 +45,6 @@ function Player:new(x, y)
     self.physics.body:setFixedRotation(true)
     self.physics.shape = love.physics.newRectangleShape(self.WIDTH, self.HEIGHT)
     self.physics.fixture = love.physics.newFixture(self.physics.body, self.physics.shape)
-
-    -- Appearance
-    self.state = self.STARTING_STATE
-    self.stateFrame = 1
-    self.stateTime = 0
 end
 
 ---Updates the Player.

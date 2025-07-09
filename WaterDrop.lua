@@ -14,29 +14,28 @@ function WaterDrop:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    self.STRAFE_RANGE = 100
-    self.PLAYER_DETECTION_RANGE = 200
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 4, framerate = 10, noFlip = true},
         rise = {state = "rise", start = 1, frames = 5, framerate = 10, onFinish = "move"},
         move = {state = "move", start = 1, frames = 4, framerate = 10},
-        defeat = {state = "defeat", start = 1, frames = 5, framerate = 10, delOnFinish = true}
+        defeat = {state = "defeat", start = 1, frames = 5, framerate = 10, delOnFinish = true},
+        sleep = {state = "rise", start = 1, frames = 5, framerate = 10, onFinish = "idle", reverse = true}
     }
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _WATER_DROP_SPRITES
 
+    self.STRAFE_RANGE = 100
+    self.PLAYER_DETECTION_RANGE = 200
+    self.SLEEP_DELAY_MAX = 3
+    self.SLEEP_SAFE_DISTANCE = 400
+
     -- Prepend default fields
-    self.super:new(x, y)
+    self.super.new(self, x, y)
 
     -- State
-    self.x, self.y = x, y
-    self.homeX, self.homeY = x, y
-    self.speedX, self.speedY = 0, 0
-    self.accX, self.accY = 0, 0
-    self.direction = "right"
-    self.ground = nil
     self.targetDirection = "left" -- Used when idling to strafe left and right
+    self.sleepDelay = self.SLEEP_DELAY_MAX
 
     -- Physics
     self.physics = {}
@@ -45,17 +44,13 @@ function WaterDrop:new(x, y)
     self.physics.body:setMass(25)
     self.physics.shape = love.physics.newRectangleShape(self.WIDTH, self.HEIGHT)
     self.physics.fixture = love.physics.newFixture(self.physics.body, self.physics.shape)
-
-    -- Appearance
-    self.state = self.STARTING_STATE
-    self.stateFrame = 1
-    self.stateTime = 0
 end
 
 ---Updates the WaterDrop.
 ---@param dt number Time delta in seconds
 function WaterDrop:update(dt)
     self:move(dt)
+    self:updateSleep(dt)
     -- Entity-related (this always needs to be here)
     self:updateDirection()
     self:updateGravity(dt)
@@ -93,6 +88,13 @@ function WaterDrop:move(dt)
     self.speedX = math.min(math.max(self.speedX + self.accX * dt, -self.MAX_SPEED), self.MAX_SPEED)
 end
 
+function WaterDrop:updateSleep(dt)
+    if self.state ~= self.STATES.move or self:getProximityToPlayer() < self.SLEEP_SAFE_DISTANCE then
+        self.sleepDelay = self.SLEEP_DELAY_MAX
+    end
+    self.sleepDelay = math.max(self.sleepDelay - dt, 0)
+end
+
 function WaterDrop:landOn(ground)
     self.ground = ground
     self.speedY = 0
@@ -100,11 +102,14 @@ end
 
 function WaterDrop:updateState()
     local playerClose = self:getProximityToPlayer() < self.PLAYER_DETECTION_RANGE
+    local sleep = self.sleepDelay == 0
     if self.state == self.STATES.idle then
         self:setState("rise", playerClose)
     elseif self.state == self.STATES.rise then
     elseif self.state == self.STATES.move then
+        self:setState("sleep", sleep)
     elseif self.state == self.STATES.defeat then
+    elseif self.state == self.STATES.sleep then
     end
 end
 

@@ -8,7 +8,19 @@ local Entity = Class:derive("Entity")
 ---@param x number
 ---@param y number
 function Entity:new(x, y)
-    ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?}
+    -- State
+    self.x, self.y = x, y
+    self.homeX, self.homeY = x, y
+    self.speedX, self.speedY = 0, 0
+    self.accX, self.accY = 0, 0
+    self.direction = "right"
+    self.ground = nil
+
+    -- Appearance
+    self.state = self.STARTING_STATE
+    self.stateFrame = 1
+    self.stateTime = 0
+    ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
     self.flashTime = 0
 end
 
@@ -132,7 +144,8 @@ end
 
 function Entity:drawSprite()
     love.graphics.setColor(1, 1, 1)
-    local img = self.SPRITES:getImage(self.state.state, self.stateFrame)
+    local frame = self.state.reverse and self.state.frames - self.stateFrame + 1 or self.stateFrame
+    local img = self.SPRITES:getImage(self.state.state, frame)
     local x = self.x + self.OFFSET_X
     local y = self.y + self.OFFSET_Y
     local scaleX = (self.direction == "right" or self.state.noFlip) and self.SCALE or -self.SCALE

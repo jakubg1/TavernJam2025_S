@@ -6,6 +6,7 @@
 -- @jakubg1 2025
 
 ---@class Class
+---@field super any
 local Class = {type = "Class"}
 Class.__index = Class
 

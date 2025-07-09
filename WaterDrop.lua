@@ -45,7 +45,11 @@ function WaterDrop:new(x, y)
     self.physics.body:setFixedRotation(true)
     self.physics.body:setMass(25)
     self.physics.shape = love.physics.newRectangleShape(self.WIDTH, self.HEIGHT)
-    self.physics.fixture = love.physics.newFixture(self.physics.body, self.physics.shape)
+    self.physics.colliderFixture = love.physics.newFixture(self.physics.body, self.physics.shape)
+    self.physics.colliderFixture:setCategory(2)
+    self.physics.colliderFixture:setMask(2)
+    self.physics.sensorFixture = love.physics.newFixture(self.physics.body, self.physics.shape)
+    self.physics.sensorFixture:setSensor(true)
 end
 
 ---Updates the WaterDrop.
@@ -114,24 +118,31 @@ function WaterDrop:getProximityToPlayer()
 end
 
 function WaterDrop:beginContact(a, b, collision)
+    -- Update collisions.
+    if a == self.physics.sensorFixture then
+        self.collidingWith[b] = true
+    elseif b == self.physics.sensorFixture then
+        self.collidingWith[a] = true
+    end
+
     local nx, ny = collision:getNormal()
     -- Handle hurting the player.
     local player = _LEVEL.player
-    if a == self.physics.fixture and b == player.physics.fixture then
-        player:hurt(nx < 0 and "left" or "right")
-    elseif a == player.physics.fixture and b == self.physics.fixture then
-        player:hurt(nx > 0 and "left" or "right")
+    if a == self.physics.sensorFixture and b == player.physics.sensorFixture then
+        player:hurt(player.x < self.x and "left" or "right")
+    elseif a == player.physics.sensorFixture and b == self.physics.sensorFixture then
+        player:hurt(player.x < self.x and "left" or "right")
     end
     -- Handle ground contact.
     if self.ground then
         return
     end
     -- We can be either `a` or `b` in the collision.
-    if a == self.physics.fixture then
+    if a == self.physics.colliderFixture then
         if ny > 0 then
             self:landOn(b)
         end
-    elseif b == self.physics.fixture then
+    elseif b == self.physics.colliderFixture then
         if ny < 0 then
             self:landOn(a)
         end
@@ -139,11 +150,18 @@ function WaterDrop:beginContact(a, b, collision)
 end
 
 function WaterDrop:endContact(a, b, collision)
-    if a == self.physics.fixture then
+    -- Update collisions.
+    if a == self.physics.sensorFixture then
+        self.collidingWith[b] = nil
+    elseif b == self.physics.sensorFixture then
+        self.collidingWith[a] = nil
+    end
+
+    if a == self.physics.colliderFixture then
         if self.ground == b then
             self.ground = nil
         end
-    elseif b == self.physics.fixture then
+    elseif b == self.physics.colliderFixture then
         if self.ground == a then
             self.ground = nil
         end

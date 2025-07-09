@@ -19,6 +19,10 @@ function Entity:new(x, y)
     self.direction = "right"
     self.ground = nil
 
+    -- Physics
+    ---@type table<love.Fixture, boolean?>
+    self.collidingWith = {}
+
     -- Appearance
     self.state = self.STARTING_STATE
     self.stateFrame = 1
@@ -180,6 +184,10 @@ end
 
 function Entity:drawHitbox()
     love.graphics.rectangle("line", self.x - self.WIDTH / 2, self.y - self.HEIGHT / 2, self.WIDTH, self.HEIGHT)
+    if self.invulTime then
+        local t = self.invulTime / self.INVUL_TIME_MAX
+        love.graphics.rectangle("fill", self.x - self.WIDTH / 2, self.y - self.HEIGHT / 2 - self.HEIGHT * (t - 1), self.WIDTH, self.HEIGHT * t)
+    end
 end
 
 return Entity

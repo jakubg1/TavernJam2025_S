@@ -284,6 +284,9 @@ function Entity:drawSprite()
 end
 
 function Entity:drawHitbox()
+    if not _HITBOXES then
+        return
+    end
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle("line", self.x - self.WIDTH / 2, self.y - self.HEIGHT / 2, self.WIDTH, self.HEIGHT)
     if self.invulTime then

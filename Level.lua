@@ -8,6 +8,7 @@ local Ground = require("Ground")
 local Player = require("Player")
 local WaterDrop = require("WaterDrop")
 local WaterGirl = require("WaterGirl")
+local Shark = require("Shark")
 
 function Level:new()
     self.grounds = {
@@ -18,10 +19,12 @@ function Level:new()
     }
 	self.player = Player(100, 800)
     self.enemies = {
-        WaterDrop(1500, 800),
-        WaterDrop(1400, 800),
-        WaterDrop(1300, 800),
-        WaterGirl(900, 800)
+        --WaterDrop(1500, 800),
+        --WaterDrop(1400, 800),
+        --WaterDrop(1300, 800),
+        WaterGirl(900, 800),
+        Shark(1500, 800),
+        Shark(2000, 800, true)
     }
 
     self.cameraX = 0

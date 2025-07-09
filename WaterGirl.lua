@@ -22,13 +22,15 @@ function WaterGirl:new(x, y)
         defeat = {state = "defeat", start = 1, frames = 5, framerate = 15, delOnFinish = true}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _WATER_GIRL_SPRITES
+    self.SPRITES = _SPRITES.waterGirl
 
     -- Water Girl exclusive parameters
     self.ATTACK_RANGE = 135 -- The width of attack hitboxes
     self.ATTACK_PROXIMITY = self.ATTACK_RANGE + 100 -- The amount of pixels in front of which she will attack
     self.ATTACK_COOLDOWN_MIN = 3
     self.ATTACK_COOLDOWN_MAX = 5
+
+    -- Physics
     ---@type table<string, PhysicsShape>
     self.PHYSICS_SHAPES = {
         main = {collidable = true},

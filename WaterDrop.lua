@@ -15,10 +15,6 @@ function WaterDrop:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    ---@type table<string, PhysicsShape>
-    self.PHYSICS_SHAPES = {
-        main = {collidable = true}
-    }
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 4, framerate = 10, noFlip = true},
@@ -28,13 +24,19 @@ function WaterDrop:new(x, y)
         sleep = {state = "rise", start = 1, frames = 5, framerate = 10, onFinish = "idle", reverse = true}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _WATER_DROP_SPRITES
+    self.SPRITES = _SPRITES.waterDrop
 
     -- Water Drop exclusive parameters
     self.STRAFE_RANGE = 100
     self.PLAYER_DETECTION_RANGE = 200
     self.SLEEP_DELAY_MAX = 3
     self.SLEEP_SAFE_DISTANCE = 400
+
+    -- Physics
+    ---@type table<string, PhysicsShape>
+    self.PHYSICS_SHAPES = {
+        main = {collidable = true}
+    }
 
     -- Prepend default fields
     self.super.new(self, x, y)

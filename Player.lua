@@ -15,10 +15,6 @@ function Player:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    ---@type table<string, PhysicsShape>
-    self.PHYSICS_SHAPES = {
-        main = {collidable = true}
-    }
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 6, framerate = 15},
@@ -29,7 +25,7 @@ function Player:new(x, y)
         land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _PLAYER_SPRITES
+    self.SPRITES = _SPRITES.player
 
     -- Player exclusive parameters
     self.JUMP_SPEED = -1000
@@ -37,6 +33,12 @@ function Player:new(x, y)
     self.JUMP_GRACE_TIME_MAX = 0.1
     self.KNOCK_TIME_MAX = 0.3
     self.INVUL_TIME_MAX = 1
+
+    -- Physics
+    ---@type table<string, PhysicsShape>
+    self.PHYSICS_SHAPES = {
+        main = {collidable = true}
+    }
 
     -- Prepend default fields
     self.super.new(self, x, y)

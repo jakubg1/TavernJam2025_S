@@ -6,21 +6,17 @@ local DialogText = require("DialogText")
 
 function love.load()
 	-- Resources
-    local playerSprites = {
-        directory = "assets/Player/",
-        states = {idle = 6, jump = 10, run = 16}
-    }
-	_PLAYER_SPRITES = Spritesheet(playerSprites)
-	local waterDropSprites = {
-		directory = "assets/Water_Drop/",
-		states = {defeat = 5, idle = 4, move = 4, rise = 5}
+	local spriteData = {
+		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16}},
+		waterDrop = {directory = "assets/Water_Drop/", states = {defeat = 5, idle = 4, move = 4, rise = 5}},
+		waterGirl = {directory = "assets/Water_Girl/", states = {attack = 13, defeat = 5, idle = 5}},
+		sharkMan = {directory = "assets/Shark_Man/", states = {attack = 24, fly = 18, idle = 10}},
+		sharkWoman = {directory = "assets/Shark_Woman/", states = {attack = 24, fly = 18, idle = 10}}
 	}
-	_WATER_DROP_SPRITES = Spritesheet(waterDropSprites)
-	local waterGirlSprites = {
-		directory = "assets/Water_Girl/",
-		states = {attack = 13, defeat = 5, idle = 5}
-	}
-	_WATER_GIRL_SPRITES = Spritesheet(waterGirlSprites)
+	_SPRITES = {}
+	for name, data in pairs(spriteData) do
+		_SPRITES[name] = Spritesheet(data)
+	end
 
 	_FONT_TMP = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
 	_WHITE_SHADER = love.graphics.newShader("assets/whiten.glsl")
@@ -31,6 +27,7 @@ function love.load()
 	_LEVEL = Level()
 
 	-- Tests
+	_HITBOXES = false
 	_TEXT = DialogText()
 end
 
@@ -44,6 +41,9 @@ end
 
 function love.keypressed(key)
 	_LEVEL:keypressed(key)
+	if key == "h" then
+		_HITBOXES = not _HITBOXES
+	end
 end
 
 function love.keyreleased(key)

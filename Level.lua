@@ -18,9 +18,9 @@ function Level:new()
     }
 	self.player = Player(100, 800)
     self.enemies = {
-        --WaterDrop(1000, 800),
-        --WaterDrop(900, 800),
-        --WaterDrop(800, 800),
+        WaterDrop(1500, 800),
+        WaterDrop(1400, 800),
+        WaterDrop(1300, 800),
         WaterGirl(900, 800)
     }
 

@@ -15,6 +15,10 @@ function WaterDrop:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
+    ---@type table<string, PhysicsShape>
+    self.PHYSICS_SHAPES = {
+        main = {collidable = true}
+    }
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 4, framerate = 10, noFlip = true},
@@ -38,33 +42,15 @@ function WaterDrop:new(x, y)
     -- State
     self.targetDirection = "left" -- Used when idling to strafe left and right
     self.sleepDelay = self.SLEEP_DELAY_MAX
-
-    -- Physics
-    self.physics = {}
-    self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "dynamic")
-    self.physics.body:setFixedRotation(true)
-    self.physics.body:setMass(25)
-    self.physics.shape = love.physics.newRectangleShape(self.WIDTH, self.HEIGHT)
-    self.physics.colliderFixture = love.physics.newFixture(self.physics.body, self.physics.shape)
-    self.physics.colliderFixture:setCategory(2)
-    self.physics.colliderFixture:setMask(2)
-    self.physics.sensorFixture = love.physics.newFixture(self.physics.body, self.physics.shape)
-    self.physics.sensorFixture:setSensor(true)
 end
 
 ---Updates the WaterDrop.
 ---@param dt number Time delta in seconds
 function WaterDrop:update(dt)
     self:move(dt)
+    self:updateAttack()
     self:updateSleep(dt)
-    -- Entity-related (this always needs to be here)
-    self:updateMovement(dt)
-    self:updateDirection()
-    self:updateGravity(dt)
-    self:updatePhysics()
-    self:updateState()
-    self:updateAnimation(dt)
-    self:updateFlash(dt)
+    self.super.update(self, dt)
 end
 
 function WaterDrop:move(dt)
@@ -93,6 +79,15 @@ function WaterDrop:move(dt)
     end
 end
 
+function WaterDrop:updateAttack()
+    local player = _LEVEL.player
+    if self.state == self.STATES.move then
+        if self.physics.shapes.main.collidingWith[player.physics.shapes.main.fixture] then
+            player:hurt(player.x < self.x and "left" or "right")
+        end
+    end
+end
+
 function WaterDrop:updateSleep(dt)
     if self.state ~= self.STATES.move or self:getProximityToPlayer() < self.SLEEP_SAFE_DISTANCE then
         self.sleepDelay = self.SLEEP_DELAY_MAX
@@ -110,61 +105,6 @@ function WaterDrop:updateState()
         self:setState("sleep", sleep)
     elseif self.state == self.STATES.defeat then
     elseif self.state == self.STATES.sleep then
-    end
-end
-
-function WaterDrop:getProximityToPlayer()
-    return math.abs(self.x - _LEVEL.player.x)
-end
-
-function WaterDrop:beginContact(a, b, collision)
-    -- Update collisions.
-    if a == self.physics.sensorFixture then
-        self.collidingWith[b] = true
-    elseif b == self.physics.sensorFixture then
-        self.collidingWith[a] = true
-    end
-
-    local nx, ny = collision:getNormal()
-    -- Handle hurting the player.
-    local player = _LEVEL.player
-    if a == self.physics.sensorFixture and b == player.physics.sensorFixture then
-        player:hurt(player.x < self.x and "left" or "right")
-    elseif a == player.physics.sensorFixture and b == self.physics.sensorFixture then
-        player:hurt(player.x < self.x and "left" or "right")
-    end
-    -- Handle ground contact.
-    if self.ground then
-        return
-    end
-    -- We can be either `a` or `b` in the collision.
-    if a == self.physics.colliderFixture then
-        if ny > 0 then
-            self:landOn(b)
-        end
-    elseif b == self.physics.colliderFixture then
-        if ny < 0 then
-            self:landOn(a)
-        end
-    end
-end
-
-function WaterDrop:endContact(a, b, collision)
-    -- Update collisions.
-    if a == self.physics.sensorFixture then
-        self.collidingWith[b] = nil
-    elseif b == self.physics.sensorFixture then
-        self.collidingWith[a] = nil
-    end
-
-    if a == self.physics.colliderFixture then
-        if self.ground == b then
-            self.ground = nil
-        end
-    elseif b == self.physics.colliderFixture then
-        if self.ground == a then
-            self.ground = nil
-        end
     end
 end
 

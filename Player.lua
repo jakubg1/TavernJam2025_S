@@ -15,6 +15,10 @@ function Player:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
+    ---@type table<string, PhysicsShape>
+    self.PHYSICS_SHAPES = {
+        main = {collidable = true}
+    }
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 6, framerate = 15},
@@ -32,7 +36,7 @@ function Player:new(x, y)
     self.JUMP_DELAY_MAX = 1/15
     self.JUMP_GRACE_TIME_MAX = 0.1
     self.KNOCK_TIME_MAX = 0.3
-    self.INVUL_TIME_MAX = 2
+    self.INVUL_TIME_MAX = 1
 
     -- Prepend default fields
     self.super.new(self, x, y)
@@ -42,17 +46,6 @@ function Player:new(x, y)
     self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
     self.knockTime = nil -- Makes the player ignore max speed and removes player control.
     self.invulTime = nil
-
-    -- Physics
-    self.physics = {}
-    self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "dynamic")
-    self.physics.body:setFixedRotation(true)
-    self.physics.shape = love.physics.newRectangleShape(self.WIDTH, self.HEIGHT)
-    self.physics.colliderFixture = love.physics.newFixture(self.physics.body, self.physics.shape)
-    self.physics.colliderFixture:setCategory(2)
-    self.physics.colliderFixture:setMask(2)
-    self.physics.sensorFixture = love.physics.newFixture(self.physics.body, self.physics.shape)
-    self.physics.sensorFixture:setSensor(true)
 end
 
 ---Updates the Player.
@@ -63,14 +56,7 @@ function Player:update(dt)
     self:updateJumpGrace(dt)
     self:updateKnock(dt)
     self:updateInvulnerability(dt)
-    -- Entity-related (this always needs to be here)
-    self:updateMovement(dt)
-    self:updateDirection()
-    self:updateGravity(dt)
-    self:updatePhysics()
-    self:updateState()
-    self:updateAnimation(dt)
-    self:updateFlash(dt)
+    self.super.update(self, dt)
 end
 
 function Player:move(dt)
@@ -115,7 +101,7 @@ function Player:updateKnock(dt)
         return
     end
     self.knockTime = math.max(self.knockTime - dt, 0)
-    if self.knockTime == 0 then
+    if self.knockTime == 0 or self.ground then
         self.knockTime = nil
     end
 end
@@ -142,6 +128,8 @@ function Player:knock(speedX, speedY)
     self.speedX = speedX
     self.speedY = speedY
     self.knockTime = self.KNOCK_TIME_MAX
+    -- We need to reset ground here, because `endContact` will trigger in the next frame, causing the `knockTime` state to immediately reset.
+    self.ground = nil
 end
 
 function Player:hurt(direction)
@@ -182,57 +170,6 @@ end
 function Player:keypressed(key)
     if key == "w" or key == "up" then
         self:jump()
-    end
-end
-
-function Player:beginContact(a, b, collision)
-    -- Update collisions.
-    if a == self.physics.sensorFixture then
-        self.collidingWith[b] = true
-    elseif b == self.physics.sensorFixture then
-        self.collidingWith[a] = true
-    end
-
-    if self.ground then
-        return
-    end
-    local nx, ny = collision:getNormal()
-    -- We can be either `a` or `b` in the collision.
-    if a == self.physics.colliderFixture then
-        if ny > 0 then
-            self:landOn(b)
-            self.knockTime = nil
-        elseif ny < 0 then
-            -- Bounce off the ceiling.
-            self.speedY = 0
-        end
-    elseif b == self.physics.colliderFixture then
-        if ny < 0 then
-            self:landOn(a)
-            self.knockTime = nil
-        elseif ny > 0 then
-            -- Bounce off the ceiling.
-            self.speedY = 0
-        end
-    end
-end
-
-function Player:endContact(a, b, collision)
-    -- Update collisions.
-    if a == self.physics.sensorFixture then
-        self.collidingWith[b] = nil
-    elseif b == self.physics.sensorFixture then
-        self.collidingWith[a] = nil
-    end
-
-    if a == self.physics.colliderFixture then
-        if self.ground == b then
-            self.ground = nil
-        end
-    elseif b == self.physics.colliderFixture then
-        if self.ground == a then
-            self.ground = nil
-        end
     end
 end
 

@@ -20,15 +20,46 @@ function Entity:new(x, y)
     self.ground = nil
 
     -- Physics
-    ---@type table<love.Fixture, boolean?>
-    self.collidingWith = {}
+    ---@alias PhysicsShape {collidable: boolean?, offsetX: number?, offsetY: number?, width: number?, height: number?}
+    self.physics = {}
+    self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "dynamic")
+    self.physics.body:setFixedRotation(true)
+    self.physics.body:setMass(25)
+    ---@type table<string, {fixture: love.Fixture, colliderFixture: love.Fixture?, collidingWith: table<love.Fixture, boolean?>}>
+    self.physics.shapes = {}
+    for name, shape in pairs(self.PHYSICS_SHAPES) do
+        local rect = love.physics.newRectangleShape(shape.offsetX or 0, shape.offsetY or 0, shape.width or self.WIDTH, shape.height or self.HEIGHT)
+        local shapeEntity = {}
+        shapeEntity.fixture = love.physics.newFixture(self.physics.body, rect)
+        shapeEntity.fixture:setCategory(2)
+        shapeEntity.fixture:setSensor(true)
+        if shape.collidable then
+            shapeEntity.colliderFixture = love.physics.newFixture(self.physics.body, rect)
+            shapeEntity.colliderFixture:setCategory(2)
+            shapeEntity.colliderFixture:setMask(2)
+        end
+        shapeEntity.collidingWith = {}
+        self.physics.shapes[name] = shapeEntity
+    end
 
     -- Appearance
+    ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
     self.state = self.STARTING_STATE
     self.stateFrame = 1
     self.stateTime = 0
-    ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
     self.flashTime = 0
+end
+
+---Updates the Entity. You must call `self.super.update(self, dt)` if you implement this function!
+---@param dt number Time delta in seconds.
+function Entity:update(dt)
+    self:updateMovement(dt)
+    self:updateDirection()
+    self:updateGravity(dt)
+    self:updatePhysics()
+    self:updateState()
+    self:updateAnimation(dt)
+    self:updateFlash(dt)
 end
 
 -- Applies the acceleration and caps the speed.
@@ -117,7 +148,7 @@ function Entity:setState(state, condition)
 end
 
 ---Lands this Entity on the provided ground.
----@param ground love.Body The ground physics body.
+---@param ground love.Fixture The ground physics fixture.
 function Entity:landOn(ground)
     self.ground = ground
     self.speedY = 0
@@ -144,6 +175,12 @@ function Entity:destroy()
     self.physics.body:destroy()
 end
 
+---Returns the horizontal distance to the player.
+---@return number
+function Entity:getProximityToPlayer()
+    return math.abs(self.x - _LEVEL.player.x)
+end
+
 ---Executed when key is pressed.
 ---@param key string The keycode.
 function Entity:keypressed(key)
@@ -156,6 +193,67 @@ function Entity:keyreleased(key)
     -- Filled out by subclasses
 end
 
+---Executed when any hitbox started touching another hitbox.
+---@param a love.Fixture First fixture.
+---@param b love.Fixture Second fixture.
+---@param collision love.Contact The collision.
+function Entity:beginContact(a, b, collision)
+    local nx, ny = collision:getNormal()
+
+    for name, shape in pairs(self.physics.shapes) do
+        -- Update collisions.
+        if a == shape.fixture then
+            shape.collidingWith[b] = true
+        elseif b == shape.fixture then
+            shape.collidingWith[a] = true
+        end
+
+        -- Handle ground contact.
+        -- We can be either `a` or `b` in the collision.
+        if a == shape.colliderFixture and b:getCategory() == 1 then
+            if ny > 0 then
+                self:landOn(b)
+            elseif ny < 0 then
+                -- Bounce off the ceiling.
+                self.speedY = 0
+            end
+        elseif b == shape.colliderFixture and a:getCategory() == 1 then
+            if ny < 0 then
+                self:landOn(a)
+            elseif ny > 0 then
+                -- Bounce off the ceiling.
+                self.speedY = 0
+            end
+        end
+    end
+end
+
+---Executed when any hitbox finished touching another hitbox.
+---@param a love.Fixture First fixture.
+---@param b love.Fixture Second fixture.
+---@param collision love.Contact The collision.
+function Entity:endContact(a, b, collision)
+    for name, shape in pairs(self.physics.shapes) do
+        -- Update collisions.
+        if a == shape.fixture then
+            shape.collidingWith[b] = nil
+        elseif b == shape.fixture then
+            shape.collidingWith[a] = nil
+        end
+
+        -- Handle ground contact.
+        if a == shape.colliderFixture then
+            if self.ground == b then
+                self.ground = nil
+            end
+        elseif b == shape.colliderFixture then
+            if self.ground == a then
+                self.ground = nil
+            end
+        end
+    end
+end
+
 ---Draws the Entity on the screen.
 function Entity:draw()
     self:drawSprite()
@@ -163,7 +261,6 @@ function Entity:draw()
 end
 
 function Entity:drawSprite()
-    love.graphics.setColor(1, 1, 1)
     local frame = self.state.reverse and self.state.frames - self.stateFrame + 1 or self.stateFrame
     local img = self.SPRITES:getImage(self.state.state, frame)
     local flipped = self.direction == "left" and not self.state.noFlip
@@ -173,6 +270,10 @@ function Entity:drawSprite()
     local scaleY = self.SCALE
     local width = self.SPRITES.imageWidth / 2
     local height = self.SPRITES.imageHeight / 2
+    love.graphics.setColor(1, 1, 1)
+    if self.invulTime then
+        --love.graphics.setColor(1, 1, 1, 0.8)
+    end
     if self.flashTime > 0 then
         love.graphics.setShader(_WHITE_SHADER)
     end
@@ -183,10 +284,16 @@ function Entity:drawSprite()
 end
 
 function Entity:drawHitbox()
+    love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle("line", self.x - self.WIDTH / 2, self.y - self.HEIGHT / 2, self.WIDTH, self.HEIGHT)
     if self.invulTime then
         local t = self.invulTime / self.INVUL_TIME_MAX
         love.graphics.rectangle("fill", self.x - self.WIDTH / 2, self.y - self.HEIGHT / 2 - self.HEIGHT * (t - 1), self.WIDTH, self.HEIGHT * t)
+    end
+    love.graphics.setColor(1, 0, 1)
+    for name, shape in pairs(self.physics.shapes) do
+        local x1, y1, x2, y2 = shape.fixture:getBoundingBox()
+        love.graphics.rectangle("line", x1, y1, x2 - x1, y2 - y1)
     end
 end
 

@@ -7,7 +7,7 @@ local DialogText = require("DialogText")
 function love.load()
 	-- Resources
 	local spriteData = {
-		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16}},
+		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 13}},
 		waterDrop = {directory = "assets/Water_Drop/", states = {defeat = 5, idle = 4, move = 4, rise = 5}},
 		waterGirl = {directory = "assets/Water_Girl/", states = {attack = 13, defeat = 5, idle = 5}},
 		sharkMan = {directory = "assets/Shark_Man/", states = {attack = 24, fly = 18, idle = 10}},

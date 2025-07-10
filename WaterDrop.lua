@@ -15,6 +15,10 @@ function WaterDrop:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
+    self.MAX_HEALTH = 2
+    self.KNOCK_X, self.KNOCK_Y = 600, 600
+    self.KNOCK_TIME_MAX = 10.3
+    self.INVUL_TIME_MAX = 0
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 4, framerate = 10, noFlip = true},
@@ -71,7 +75,9 @@ function WaterDrop:move(dt)
         left = proximity > 40 and self.x > _LEVEL.player.x
         right = proximity > 40 and self.x < _LEVEL.player.x
     end
-    if left and not right then
+    if self.knockTime then
+        self.accX = 0
+    elseif left and not right then
         self.accX = -self.MAX_ACC
     elseif right and not left then
         self.accX = self.MAX_ACC
@@ -100,11 +106,13 @@ end
 function WaterDrop:updateState()
     local playerClose = self:getProximityToPlayer() < self.PLAYER_DETECTION_RANGE
     local sleep = self.sleepDelay == 0
+    local dead = self.dead
     if self.state == self.STATES.idle then
         self:setState("rise", playerClose)
     elseif self.state == self.STATES.rise then
     elseif self.state == self.STATES.move then
         self:setState("sleep", sleep)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.defeat then
     elseif self.state == self.STATES.sleep then
     end

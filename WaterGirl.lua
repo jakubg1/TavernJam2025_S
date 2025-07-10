@@ -15,6 +15,10 @@ function WaterGirl:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
+    self.MAX_HEALTH = 2
+    self.KNOCK_X, self.KNOCK_Y = 0, 0
+    self.KNOCK_TIME_MAX = 10.3
+    self.INVUL_TIME_MAX = 0
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 5, framerate = 15},
@@ -26,7 +30,7 @@ function WaterGirl:new(x, y)
 
     -- Water Girl exclusive parameters
     self.ATTACK_RANGE = 135 -- The width of attack hitboxes
-    self.ATTACK_PROXIMITY = self.ATTACK_RANGE + 100 -- The amount of pixels in front of which she will attack
+    self.ATTACK_PROXIMITY = self.ATTACK_RANGE + self.WIDTH + 40 -- The amount of pixels in front of which she will attack
     self.ATTACK_COOLDOWN_MIN = 1.5
     self.ATTACK_COOLDOWN_MAX = 2.5
 
@@ -90,9 +94,12 @@ end
 function WaterGirl:updateState()
     local playerClose = self:getProximityToPlayer() < self.ATTACK_PROXIMITY
     local canAttack = not self.attackCooldown
+    local dead = self.dead
     if self.state == self.STATES.idle then
         self:setState("attack", playerClose and canAttack)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.attack then
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.defeat then
     end
 end

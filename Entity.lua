@@ -18,6 +18,10 @@ function Entity:new(x, y)
     self.accX, self.accY = 0, 0
     self.direction = "right"
     self.ground = nil
+    self.health = self.MAX_HEALTH
+    self.dead = false
+    self.knockTime = nil -- Makes the player ignore max speed and removes player control.
+    self.invulTime = nil
 
     -- Physics
     ---@alias PhysicsShape {collidable: boolean?, offsetX: number?, offsetY: number?, width: number?, height: number?}
@@ -57,6 +61,8 @@ function Entity:update(dt)
     self:updateDirection()
     self:updateGravity(dt)
     self:updatePhysics()
+    self:updateKnock(dt)
+    self:updateInvulnerability(dt)
     self:updateState()
     self:updateAnimation(dt)
     self:updateFlash(dt)
@@ -65,7 +71,10 @@ end
 -- Applies the acceleration and caps the speed.
 ---@param dt number Time delta in seconds.
 function Entity:updateMovement(dt)
-    self.speedX = math.min(math.max(self.speedX + self.accX * dt, -self.MAX_SPEED), self.MAX_SPEED)
+    self.speedX = self.speedX + self.accX * dt
+    if not self.knockTime then
+        self.speedX = math.min(math.max(self.speedX, -self.MAX_SPEED), self.MAX_SPEED)
+    end
 end
 
 ---Slows the entity down on horizontal axis based on the `self.DRAG` parameter.
@@ -100,6 +109,30 @@ end
 function Entity:updatePhysics()
     self.x, self.y = self.physics.body:getPosition()
     self.physics.body:setLinearVelocity(self.speedX, self.speedY)
+end
+
+---Updates the knockout timer. While knocked and in air, the player cannot control the entity.
+---@param dt number Time delta in seconds.
+function Entity:updateKnock(dt)
+    if not self.knockTime then
+        return
+    end
+    self.knockTime = math.max(self.knockTime - dt, 0)
+    if self.knockTime == 0 or self.ground then
+        self.knockTime = nil
+    end
+end
+
+---Updates the invulnerability timer. While invulnerable, the entity cannot be hurt.
+---@param dt number Time delta in seconds.
+function Entity:updateInvulnerability(dt)
+    if not self.invulTime then
+        return
+    end
+    self.invulTime = math.max(self.invulTime - dt, 0)
+    if self.invulTime == 0 then
+        self.invulTime = nil
+    end
 end
 
 ---Performs a simple state machine update and changes the state if certain conditions are met.
@@ -164,6 +197,32 @@ end
 ---@param t number? Duration of flash.
 function Entity:flash(t)
     self.flashTime = t or 0.1
+end
+
+---Knocks the entity in the specified vector and marks is as knocked.
+---@param speedX number X speed in pixels per second.
+---@param speedY number Y speed in pixels per second.
+function Entity:knock(speedX, speedY)
+    self.speedX = speedX
+    self.speedY = speedY
+    self.knockTime = self.KNOCK_TIME_MAX
+    -- We need to reset ground here, because `endContact` will trigger in the next frame, causing the `knockTime` state to immediately reset.
+    self.ground = nil
+end
+
+---Hurts the entity in the specified direction if not invulnerable.
+---@param direction "left"|"right" The attack direction.
+function Entity:hurt(direction)
+    if self.invulTime or not self.health then
+        return
+    end
+    self:knock(direction == "left" and -self.KNOCK_X or self.KNOCK_X, -self.KNOCK_Y)
+    self:flash()
+    self.health = self.health - 1
+    if self.health == 0 then
+        self.dead = true
+    end
+    self.invulTime = self.INVUL_TIME_MAX
 end
 
 ---Destroys this Entity, its physics body and makes it ready to be removed.

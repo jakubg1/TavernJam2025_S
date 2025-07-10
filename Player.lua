@@ -15,6 +15,10 @@ function Player:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
+    self.MAX_HEALTH = 4
+    self.KNOCK_X, self.KNOCK_Y = 600, 600
+    self.KNOCK_TIME_MAX = 10.3
+    self.INVUL_TIME_MAX = 1
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 6, framerate = 15},
@@ -22,7 +26,9 @@ function Player:new(x, y)
         jumpPrep = {state = "jump", start = 1, frames = 2, framerate = 30, onFinish = "jump"},
         jump = {state = "jump", start = 3, frames = 5, framerate = 15, onFinish = "fall"},
         fall = {state = "jump", start = 8, frames = 1, framerate = 15},
-        land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"}
+        land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"},
+        punchLeft = {state = "leftpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
+        punchRight = {state = "rightpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"}
     }
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _SPRITES.player
@@ -31,13 +37,15 @@ function Player:new(x, y)
     self.JUMP_SPEED = -1000
     self.JUMP_DELAY_MAX = 1/15
     self.JUMP_GRACE_TIME_MAX = 0.1
-    self.KNOCK_TIME_MAX = 0.3
-    self.INVUL_TIME_MAX = 1
+    self.ATTACK_DELAY = 0.15
+    self.ATTACK_RANGE = 80 -- The width of attack hitboxes
 
     -- Physics
     ---@type table<string, PhysicsShape>
     self.PHYSICS_SHAPES = {
-        main = {collidable = true}
+        main = {collidable = true},
+        attackLeft = {offsetX = -self.ATTACK_RANGE / 2 - self.WIDTH / 2, width = self.ATTACK_RANGE},
+        attackRight = {offsetX = self.ATTACK_RANGE / 2 + self.WIDTH / 2, width = self.ATTACK_RANGE}
     }
 
     -- Prepend default fields
@@ -46,8 +54,8 @@ function Player:new(x, y)
     -- State
     self.jumpDelay = nil
     self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
-    self.knockTime = nil -- Makes the player ignore max speed and removes player control.
-    self.invulTime = nil
+    self.attackTime = nil
+    self.nextPunchRight = false
 end
 
 ---Updates the Player.
@@ -56,8 +64,7 @@ function Player:update(dt)
     self:move(dt)
     self:updateJumpDelay(dt)
     self:updateJumpGrace(dt)
-    self:updateKnock(dt)
-    self:updateInvulnerability(dt)
+    self:updateAttack(dt)
     self.super.update(self, dt)
 end
 
@@ -98,23 +105,21 @@ function Player:updateJumpGrace(dt)
     end
 end
 
-function Player:updateKnock(dt)
-    if not self.knockTime then
+function Player:updateAttack(dt)
+    if not self.attackTime then
         return
     end
-    self.knockTime = math.max(self.knockTime - dt, 0)
-    if self.knockTime == 0 or self.ground then
-        self.knockTime = nil
-    end
-end
-
-function Player:updateInvulnerability(dt)
-    if not self.invulTime then
-        return
-    end
-    self.invulTime = math.max(self.invulTime - dt, 0)
-    if self.invulTime == 0 then
-        self.invulTime = nil
+    self.attackTime = math.max(self.attackTime - dt, 0)
+    if self.attackTime == 0 then
+        self.attackTime = nil
+        -- Hurt at most one enemy.
+        for i, enemy in ipairs(_LEVEL.enemies) do
+            local attackHitbox = self.direction == "left" and self.physics.shapes.attackLeft or self.physics.shapes.attackRight
+            if attackHitbox.collidingWith[enemy.physics.shapes.main.fixture] then
+                enemy:hurt(self.direction)
+                break
+            end
+        end
     end
 end
 
@@ -126,21 +131,14 @@ function Player:jump()
     self.jumpGraceTime = 0
 end
 
-function Player:knock(speedX, speedY)
-    self.speedX = speedX
-    self.speedY = speedY
-    self.knockTime = self.KNOCK_TIME_MAX
-    -- We need to reset ground here, because `endContact` will trigger in the next frame, causing the `knockTime` state to immediately reset.
-    self.ground = nil
-end
-
-function Player:hurt(direction)
-    if self.invulTime then
+function Player:attack()
+    if self.attackTime then
         return
     end
-    self:knock(direction == "left" and -600 or 600, -400)
-    self:flash()
-    self.invulTime = self.INVUL_TIME_MAX
+    if self.state == self.STATES.idle or self.state == self.STATES.run or self.state == self.STATES.punchLeft or self.state == self.STATES.punchRight then
+        self.attackTime = self.ATTACK_DELAY
+        self.nextPunchRight = not self.nextPunchRight
+    end
 end
 
 function Player:updateState()
@@ -148,14 +146,20 @@ function Player:updateState()
     local jumping = (not self.ground and self.speedY < 0) or self.jumpDelay ~= nil
     local falling = not self.ground and self.speedY > 0
     local landing = self.ground ~= nil and not self.jumpDelay
+    local attacking = self.attackTime ~= nil
+    local attackRight = self.nextPunchRight
     if self.state == self.STATES.idle then
         self:setState("run", moving)
         self:setState("jumpPrep", jumping)
         self:setState("fall", falling)
+        self:setState("punchLeft", attacking and not attackRight)
+        self:setState("punchRight", attacking and attackRight)
     elseif self.state == self.STATES.run then
         self:setState("idle", not moving)
         self:setState("jumpPrep", jumping)
         self:setState("fall", falling)
+        self:setState("punchLeft", attacking and not attackRight)
+        self:setState("punchRight", attacking and attackRight)
     elseif self.state == self.STATES.jumpPrep then
         self:setState("land", landing)
     elseif self.state == self.STATES.jump then
@@ -164,6 +168,10 @@ function Player:updateState()
         self:setState("land", landing)
     elseif self.state == self.STATES.land then
         self:setState("run", moving)
+    elseif self.state == self.STATES.punchLeft then
+        self:setState("punchRight", attacking and attackRight)
+    elseif self.state == self.STATES.punchRight then
+        self:setState("punchLeft", attacking and not attackRight)
     end
 end
 
@@ -172,6 +180,8 @@ end
 function Player:keypressed(key)
     if key == "w" or key == "up" then
         self:jump()
+    elseif key == "z" then
+        self:attack()
     end
 end
 

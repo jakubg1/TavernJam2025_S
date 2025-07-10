@@ -40,7 +40,7 @@ function Player:new(x, y)
     self.JUMP_GRACE_TIME_MAX = 0.1
     self.ATTACK_DELAY = 0.15
     self.ATTACK_RANGE = 80 -- The width of attack hitboxes
-    self.DROP_ATTACK_SPEED = -1000
+    self.DROP_ATTACK_SPEED = -700
     self.DROP_ATTACK_RANGE = 80
 
     -- Physics
@@ -127,7 +127,7 @@ function Player:updateAttack(dt)
         -- Hurt at most one enemy.
         for i, enemy in ipairs(_LEVEL.enemies) do
             if attackHitbox.collidingWith[enemy.physics.shapes.main.fixture] then
-                enemy:hurt(self.direction)
+                enemy:hurt(self.direction, dropKick and 2 or 1)
                 enemyFound = true
                 break
             end
@@ -156,6 +156,18 @@ function Player:attack()
     elseif self.state == self.STATES.fall then
         self.attackTime = self.ATTACK_DELAY
     end
+end
+
+function Player:canBeAttacked()
+    -- The player cannot be attacked if they are invulnerable.
+    if self.invulTime then
+        return false
+    end
+    -- The player cannot be attacked if they are performing a drop kick.
+    if self.attackTime or self.state == self.STATES.dropKick then
+        return false
+    end
+    return true
 end
 
 function Player:updateState()
@@ -190,6 +202,8 @@ function Player:updateState()
         self:setState("punchRight", attacking and attackRight)
     elseif self.state == self.STATES.punchRight then
         self:setState("punchLeft", attacking and not attackRight)
+    elseif self.state == self.STATES.dropKick then
+        self:setState("land", landing)
     end
 end
 

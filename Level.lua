@@ -5,10 +5,12 @@ local Class = require("com.class")
 local Level = Class:derive("Level")
 
 local Ground = require("Ground")
-local Player = require("Player")
-local WaterDrop = require("WaterDrop")
-local WaterGirl = require("WaterGirl")
-local Shark = require("Shark")
+local Player = require("Entities.Player")
+local CloudGirl = require("Entities.CloudGirl")
+local FishBoy = require("Entities.FishBoy")
+local WaterDrop = require("Entities.WaterDrop")
+local WaterGirl = require("Entities.WaterGirl")
+local Shark = require("Entities.Shark")
 
 function Level:new()
     self.grounds = {
@@ -23,8 +25,11 @@ function Level:new()
         WaterDrop(1400, 800),
         WaterDrop(1300, 800),
         WaterGirl(900, 800),
-        Shark(1500, 800),
-        Shark(2000, 800, true)
+        --Shark(1500, 800),
+        --Shark(2000, 800, true),
+        --FishBoy(500, 800),
+        --FishBoy(700, 800, true),
+        --CloudGirl(500, 300)
     }
 
     self.cameraX = 0

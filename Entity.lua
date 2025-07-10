@@ -212,17 +212,29 @@ end
 
 ---Hurts the entity in the specified direction if not invulnerable.
 ---@param direction "left"|"right" The attack direction.
-function Entity:hurt(direction)
-    if self.invulTime or not self.health then
+---@param damage integer? How many health points should be taken. `1` by default.
+function Entity:hurt(direction, damage)
+    damage = damage or 1
+    if not self:canBeAttacked() or not self.health then
         return
     end
     self:knock(direction == "left" and -self.KNOCK_X or self.KNOCK_X, -self.KNOCK_Y)
     self:flash()
-    self.health = self.health - 1
+    self.health = math.max(self.health - damage, 0)
     if self.health == 0 then
         self.dead = true
     end
     self.invulTime = self.INVUL_TIME_MAX
+end
+
+---Returns `true` if the entity cannot be hurt.
+---@return boolean
+function Entity:canBeAttacked()
+    -- The player cannot be attacked if they are invulnerable or have no health.
+    if self.invulTime then
+        return false
+    end
+    return true
 end
 
 ---Destroys this Entity, its physics body and makes it ready to be removed.

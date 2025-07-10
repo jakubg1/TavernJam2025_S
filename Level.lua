@@ -12,7 +12,7 @@ local Shark = require("Shark")
 
 function Level:new()
     self.grounds = {
-        Ground(1000, 900, 2000, 200),
+        Ground(1000, 900, 3000, 200),
         Ground(1300, 650, 700, 15),
         Ground(1300, 500, 500, 15),
         Ground(1300, 350, 300, 15)

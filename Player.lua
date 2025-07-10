@@ -24,11 +24,12 @@ function Player:new(x, y)
         idle = {state = "idle", start = 1, frames = 6, framerate = 15},
         run = {state = "run", start = 1, frames = 16, framerate = 30},
         jumpPrep = {state = "jump", start = 1, frames = 2, framerate = 30, onFinish = "jump"},
-        jump = {state = "jump", start = 3, frames = 5, framerate = 15, onFinish = "fall"},
-        fall = {state = "jump", start = 8, frames = 1, framerate = 15},
+        jump = {state = "jump", start = 3, frames = 6, framerate = 15, onFinish = "fall"},
+        fall = {state = "fall", start = 1, frames = 2, framerate = 15},
         land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"},
         punchLeft = {state = "leftpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
-        punchRight = {state = "rightpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"}
+        punchRight = {state = "rightpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
+        dropKick = {state = "dropkick", start = 1, frames = 6, framerate = 15, onFinish = "fall"}
     }
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _SPRITES.player
@@ -39,13 +40,16 @@ function Player:new(x, y)
     self.JUMP_GRACE_TIME_MAX = 0.1
     self.ATTACK_DELAY = 0.15
     self.ATTACK_RANGE = 80 -- The width of attack hitboxes
+    self.DROP_ATTACK_SPEED = -1000
+    self.DROP_ATTACK_RANGE = 80
 
     -- Physics
     ---@type table<string, PhysicsShape>
     self.PHYSICS_SHAPES = {
         main = {collidable = true},
         attackLeft = {offsetX = -self.ATTACK_RANGE / 2 - self.WIDTH / 2, width = self.ATTACK_RANGE},
-        attackRight = {offsetX = self.ATTACK_RANGE / 2 + self.WIDTH / 2, width = self.ATTACK_RANGE}
+        attackRight = {offsetX = self.ATTACK_RANGE / 2 + self.WIDTH / 2, width = self.ATTACK_RANGE},
+        attackDrop = {offsetY = self.DROP_ATTACK_RANGE / 2 + self.HEIGHT / 2, width = self.WIDTH * 2, height = self.DROP_ATTACK_RANGE}
     }
 
     -- Prepend default fields
@@ -112,13 +116,24 @@ function Player:updateAttack(dt)
     self.attackTime = math.max(self.attackTime - dt, 0)
     if self.attackTime == 0 then
         self.attackTime = nil
+        local dropKick = self.state == self.STATES.dropKick
+        local attackHitbox
+        if dropKick then
+            attackHitbox = self.physics.shapes.attackDrop
+        else
+            attackHitbox = self.direction == "left" and self.physics.shapes.attackLeft or self.physics.shapes.attackRight
+        end
+        local enemyFound = false
         -- Hurt at most one enemy.
         for i, enemy in ipairs(_LEVEL.enemies) do
-            local attackHitbox = self.direction == "left" and self.physics.shapes.attackLeft or self.physics.shapes.attackRight
             if attackHitbox.collidingWith[enemy.physics.shapes.main.fixture] then
                 enemy:hurt(self.direction)
+                enemyFound = true
                 break
             end
+        end
+        if enemyFound and dropKick then
+            self.speedY = self.DROP_ATTACK_SPEED
         end
     end
 end
@@ -138,6 +153,8 @@ function Player:attack()
     if self.state == self.STATES.idle or self.state == self.STATES.run or self.state == self.STATES.punchLeft or self.state == self.STATES.punchRight then
         self.attackTime = self.ATTACK_DELAY
         self.nextPunchRight = not self.nextPunchRight
+    elseif self.state == self.STATES.fall then
+        self.attackTime = self.ATTACK_DELAY
     end
 end
 
@@ -166,6 +183,7 @@ function Player:updateState()
         self:setState("land", landing)
     elseif self.state == self.STATES.fall then
         self:setState("land", landing)
+        self:setState("dropKick", attacking)
     elseif self.state == self.STATES.land then
         self:setState("run", moving)
     elseif self.state == self.STATES.punchLeft then

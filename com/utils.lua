@@ -1,6 +1,12 @@
 -- utils.lua by jakubg1
 -- version for all the new stuff! (I need to find a more exhaustively edited one)
 
+---It is currently not possible to accurately describe this type using Luadoc.
+---A table with alternating values: color in format of `{r, g, b}` and text which should be drawn using that color.
+---Example: `{{1, 0, 0}, "red", {0, 1, 0}, "green", {1, 1, 1}, "white"}`
+---@alias ColoredText table
+
+local utf8 = require("utf8")
 local json = require("com.json")
 
 local utils = {}
@@ -215,6 +221,36 @@ end
 
 
 
+---Adds all entries from `t2` to the table `t1`. Duplicates are not removed.
+---@param t1 table The first table.
+---@param t2 table The second table.
+function utils.tableAddInplace(t1, t2)
+	for i, v in ipairs(t2) do
+		table.insert(t1, v)
+	end
+end
+
+
+
+---Returns `true` if both tables are identical in contents. Shallow check is used.
+---@param t1 table The first table.
+---@param t2 table The second table to be compared with the first table.
+function utils.areTablesIdentical(t1, t2)
+	for i, n in pairs(t1) do
+		if t2[i] ~= n then
+			return false
+		end
+	end
+	for i, n in pairs(t2) do
+		if t1[i] ~= n then
+			return false
+		end
+	end
+	return true
+end
+
+
+
 ---Returns `true` if the provided value is in the table.
 ---@param t table The table to be checked.
 ---@param v any The value to be checked. The function will return `true` if this value is inside the `t` table.
@@ -251,22 +287,43 @@ end
 
 
 ---Splits a string `s` with the delimiter being `k` and returns a list of results.
----@param s string A string to be split.
+---If Colored Text is passed, the result will be a list of Colored Texts.
+---@param s string|ColoredText A string or LOVE Colored Text to be split.
 ---@param k string A delimiter which determines where to split `s`.
----@return table
+---@return string[]|ColoredText[]
 function utils.strSplit(s, k)
-	local t = {}
-	local l = k:len()
-	while true do
-		local n = s:find("%" .. k)
-		if n then
-			table.insert(t, s:sub(1, n - 1))
-			s = s:sub(n + l)
-		else
-			table.insert(t, s)
-			return t
+	local result = {}
+	if type(s) == "string" then
+		local l = k:len()
+		while true do
+			local n = s:find("%" .. k)
+			if n then
+				table.insert(result, s:sub(1, n - 1))
+				s = s:sub(n + l)
+			else
+				table.insert(result, s)
+				return result
+			end
 		end
+	elseif type(s) == "table" then
+		-- We are splitting a colored text.
+		-- Split each chunk separately and give it the same color.
+		for i = 2, #s, 2 do
+			local color = s[i - 1]
+			local substrs = utils.strSplit(s[i], k)
+			for j, substr in ipairs(substrs) do
+				-- The first chunk of this color should be merged with the last chunk of the previous color.
+				-- Otherwise, create a new chunk.
+				if j > 1 or #result == 0 then
+					table.insert(result, {})
+				end
+				table.insert(result[#result], color)
+				table.insert(result[#result], substr)
+			end
+		end
+		return result
 	end
+	error(string.format("Illegal input type for `utils.strSplit()`: %s (type %s, expected: string or table)", s, type(s)))
 end
 
 
@@ -456,6 +513,24 @@ end
 
 
 
+function utils.interpolate(a, b, t)
+	return a * (1 - t) + b * t
+end
+
+function utils.interpolateClamped(a, b, t)
+	return utils.interpolate(a, b, math.min(math.max(t, 0), 1))
+end
+
+function utils.interpolate2(a, b, t1, t2, t)
+	return utils.interpolate(a, b, (t - t1) / (t2 - t1))
+end
+
+function utils.interpolate2Clamped(a, b, t1, t2, t)
+	return utils.interpolate(a, b, math.min(math.max((t - t1) / (t2 - t1), 0), 1))
+end
+
+
+
 ---Returns `true` if two ranges of numbers intersect (at least one number is common).
 ---@param s1 number The start of the first range.
 ---@param e1 number The end of the first range.
@@ -481,6 +556,99 @@ end
 function utils.doBoxesIntersect(x1, y1, w1, h1, x2, y2, w2, h2)
 	assert(w1 >= 0 and h1 >= 0 and w2 >= 0 and h2 >= 0, "Illegal boxes passed to `_Utils.doBoxesIntersect()`! You must normalize the boxes first using `_Utils.normalizeBox(x, y, w, h)`.")
 	return utils.doRangesIntersect(x1, x1 + w1, x2, x2 + w2) and utils.doRangesIntersect(y1, y1 + h1, y2, y2 + h2)
+end
+
+
+
+---Adds a new text segment to the provided chunk of colored text.
+---@param ctext ColoredText The colored text to be added to.
+---@param text string|ColoredText The text or colored text to be added.
+---@param color [number, number, number]? The color of the new segment. If not specified, color of the previous segment will be used.
+function utils.ctextAdd(ctext, text, color)
+	if type(text) == "table" then
+		utils.tableAddInplace(ctext, text)
+	else
+		local prevColor = ctext[#ctext - 1]
+		local sameColor = color and prevColor and utils.areTablesIdentical(color, prevColor)
+		if color and not sameColor then
+			table.insert(ctext, color)
+			table.insert(ctext, text)
+		else
+			if #ctext == 0 then
+				-- If the colored text was empty, the first segment will be white.
+				table.insert(ctext, {1, 1, 1})
+				table.insert(ctext, text)
+			else
+				ctext[#ctext] = ctext[#ctext] .. text
+			end
+		end
+	end
+end
+
+
+
+---Returns a substring of Colored Text.
+---@param ctext ColoredText The colored text to be split.
+---@param i integer The first character, 1-indexed.
+---@param j integer The last character to be included in the returned string, 1-indexed, inclusive.
+---@return ColoredText
+function utils.ctextSub(ctext, i, j)
+	local n = 0
+	local result = {}
+	for k = 1, #ctext, 2 do
+		local color = ctext[k]
+		local text = ctext[k + 1]
+		local l = #text
+		if i <= n + l then
+			local subtext = text:sub(math.max(i - n, 1), math.min(j - n, l))
+			utils.ctextAdd(result, subtext, color)
+			if j <= n + l then
+				break
+			end
+		end
+		n = n + l
+	end
+	return result
+end
+
+
+
+---Returns the total length of Colored Text in bytes.
+---@param ctext ColoredText The colored text to be calculated length of.
+---@return integer
+function utils.ctextLen(ctext)
+	local l = 0
+	for k = 1, #ctext, 2 do
+		l = l + #ctext[k + 1]
+	end
+	return l
+end
+
+
+
+---Returns whether the provided value is a valid colored text.
+---Empty tables are not considered colored text.
+---@param value any The value to be checked.
+---@return boolean
+function utils.tableIsCtext(value)
+	if type(value) ~= "table" or #value == 0 then
+		return false
+	end
+
+	for i, v in ipairs(value) do
+		if i % 2 == 1 then
+			-- Must be a color.
+			if type(v) ~= "table" or #v ~= 3 then
+				return false
+			end
+		else
+			-- Must be a string.
+			if type(v) ~= "string" then
+				return false
+			end
+		end
+	end
+	return true
 end
 
 

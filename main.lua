@@ -17,6 +17,7 @@ function love.load()
 		sharkMan = {directory = "assets/Shark_Man/", states = {attack = 24, fly = 18, idle = 10}},
 		sharkWoman = {directory = "assets/Shark_Woman/", states = {attack = 24, fly = 18, idle = 10}}
 	}
+	---@type table<string, Spritesheet>
 	_SPRITES = {}
 	for name, data in pairs(spriteData) do
 		_SPRITES[name] = Spritesheet(data)
@@ -28,6 +29,9 @@ function love.load()
 
 	_FONT_TMP = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
 	_WHITE_SHADER = love.graphics.newShader("assets/whiten.glsl")
+
+	_DIALOG = love.graphics.newImage("assets/dialog.png")
+	_DIALOG_ARROW = love.graphics.newImage("assets/dialog_arrow.png")
 
 	-- Game logic
 	_WORLD = bump.newWorld()
@@ -43,6 +47,7 @@ function love.update(dt)
 		dt = dt / 5
 	end
 	_LEVEL:update(dt)
+	_TEXT:update(dt)
 end
 
 function love.keypressed(key)
@@ -56,7 +61,11 @@ function love.keyreleased(key)
 	_LEVEL:keyreleased(key)
 end
 
+function love.mousepressed(x, y, button)
+	_TEXT:mousepressed(x, y, button)
+end
+
 function love.draw()
 	_LEVEL:draw()
-	--_TEXT:draw()
+	_TEXT:draw()
 end

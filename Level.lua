@@ -46,6 +46,10 @@ function Level:new()
     self.CAMERA_Y_MAX = _LEVEL_FG:getHeight() * self.FG_SCALE
     self.cameraX = 0
     self.cameraY = 0
+
+    self.endLevelCutscene = {
+        {text = {{1, 1, 0}, "Congratulations! ", {1, 1, 1}, "You've beaten the first level!"}, img = _SPRITES.player.states.idle[1], side = "right"}
+    }
 end
 
 function Level:update(dt)

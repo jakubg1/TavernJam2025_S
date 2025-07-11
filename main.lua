@@ -3,7 +3,7 @@ _Utils = require("com.utils")
 local bump = require("com.bump")
 local Spritesheet = require("Spritesheet")
 local Level = require("Level")
-local DialogText = require("DialogText")
+local DialogText = require("Cutscene")
 
 function love.load()
 	-- Resources
@@ -27,7 +27,7 @@ function love.load()
 	_LEVEL_FG = love.graphics.newImage("assets/Level_Picnic/foreground.png")
 	_LEVEL_SKY = love.graphics.newImage("assets/Level_Picnic/sky.png")
 
-	_FONT_TMP = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
+	_FONT = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
 	_WHITE_SHADER = love.graphics.newShader("assets/whiten.glsl")
 
 	_DIALOG = love.graphics.newImage("assets/dialog.png")
@@ -36,36 +36,46 @@ function love.load()
 	-- Game logic
 	_WORLD = bump.newWorld()
 	_LEVEL = Level()
+	_CUTSCENE = DialogText()
 
-	-- Tests
+	-- Debug
 	_HITBOXES = false
-	_TEXT = DialogText()
 end
 
 function love.update(dt)
 	if love.keyboard.isDown("space") then
 		dt = dt / 5
 	end
-	_LEVEL:update(dt)
-	_TEXT:update(dt)
+	if not _CUTSCENE:isActive() then
+		_LEVEL:update(dt)
+	end
+	_CUTSCENE:update(dt)
 end
 
 function love.keypressed(key)
-	_LEVEL:keypressed(key)
+	if _CUTSCENE:isActive() then
+		_CUTSCENE:keypressed(key)
+	else
+		_LEVEL:keypressed(key)
+	end
 	if key == "h" then
 		_HITBOXES = not _HITBOXES
 	end
 end
 
 function love.keyreleased(key)
-	_LEVEL:keyreleased(key)
+	if not _CUTSCENE:isActive() then
+		_LEVEL:keyreleased(key)
+	end
 end
 
 function love.mousepressed(x, y, button)
-	_TEXT:mousepressed(x, y, button)
+	if _CUTSCENE:isActive() then
+		_CUTSCENE:mousepressed(x, y, button)
+	end
 end
 
 function love.draw()
 	_LEVEL:draw()
-	_TEXT:draw()
+	_CUTSCENE:draw()
 end

@@ -48,8 +48,11 @@ function Level:new()
     self.cameraY = 0
 
     self.endLevelCutscene = {
-        {text = {{1, 1, 0}, "Congratulations! ", {1, 1, 1}, "You've beaten the first level!"}, img = _SPRITES.player.states.idle[1], side = "right"}
+        {text = {{1, 1, 1}, "You're a ", {1, 1, 0}, "HUMAN", {1, 1, 1}, " now and you gotta fight like one!"}, img = _SPRITES.player.states.idle[1], side = "right"},
+        {text = {{1, 1, 0}, "Congratulations! ", {1, 1, 1}, "You've beaten the first level!"}, img = _SPRITES.player.states.jump[5], side = "left"},
+        {text = {{1, 1, 1}, "Now you can go to"}, img = _SPRITES.player.states.jump[5], side = "left"}
     }
+    self.cutsceneLaunched = false
 end
 
 function Level:update(dt)
@@ -62,6 +65,10 @@ function Level:update(dt)
     local w, h = love.graphics.getDimensions()
     self.cameraX = math.min(math.max(self.player.x, w / 2), self.CAMERA_X_MAX - w / 2)
     self.cameraY = math.min(math.max(self.player.y, h / 2), self.CAMERA_Y_MAX - h / 2)
+    if self.cameraX == self.CAMERA_X_MAX - w / 2 and not self.cutsceneLaunched then
+        self.cutsceneLaunched = true
+        _CUTSCENE:startCutscene(self.endLevelCutscene)
+    end
 end
 
 function Level:keypressed(key)
@@ -108,7 +115,7 @@ function Level:drawDebug()
     local w, h = love.graphics.getDimensions()
     x = x + self.cameraX - w / 2
     y = y + self.cameraY - h / 2
-    love.graphics.setFont(_FONT_TMP)
+    love.graphics.setFont(_FONT)
     love.graphics.print(string.format("(%.0f, %.0f)\n(%f, %f)", x, y, self.player.x, self.player.y))
 end
 

@@ -44,12 +44,11 @@ function Player:new(x, y)
     self.DROP_ATTACK_RANGE = 80
 
     -- Physics
-    ---@type table<string, PhysicsShape>
-    self.PHYSICS_SHAPES = {
-        main = {collidable = true},
-        attackLeft = {offsetX = -self.ATTACK_RANGE / 2 - self.WIDTH / 2, width = self.ATTACK_RANGE},
-        attackRight = {offsetX = self.ATTACK_RANGE / 2 + self.WIDTH / 2, width = self.ATTACK_RANGE},
-        attackDrop = {offsetY = self.DROP_ATTACK_RANGE / 2 + self.HEIGHT / 2, width = self.WIDTH * 2, height = self.DROP_ATTACK_RANGE}
+    ---@type table<string, AttackArea>
+    self.ATTACK_AREAS = {
+        attackLeft = {offsetX = -self.ATTACK_RANGE, width = self.ATTACK_RANGE},
+        attackRight = {offsetX = self.WIDTH, width = self.ATTACK_RANGE},
+        attackDrop = {offsetX = -self.WIDTH * 0.5, offsetY = self.HEIGHT, width = self.WIDTH * 2, height = self.DROP_ATTACK_RANGE}
     }
 
     -- Prepend default fields
@@ -94,7 +93,7 @@ function Player:updateJumpDelay(dt)
     end
     self.jumpDelay = math.max(self.jumpDelay - dt, 0)
     if self.jumpDelay == 0 then
-        -- We need to reset ground here, because `endContact` will trigger in the next frame, causing the `jumpPrep` state to repeat.
+        -- We need to reset ground here, because otherwise it would be reset in the next frame, causing the `jumpPrep` state to repeat.
         self.ground = nil
         self.speedY = self.JUMP_SPEED
         self.jumpDelay = nil
@@ -119,14 +118,14 @@ function Player:updateAttack(dt)
         local dropKick = self.state == self.STATES.dropKick
         local attackHitbox
         if dropKick then
-            attackHitbox = self.physics.shapes.attackDrop
+            attackHitbox = "attackDrop"
         else
-            attackHitbox = self.direction == "left" and self.physics.shapes.attackLeft or self.physics.shapes.attackRight
+            attackHitbox = self.direction == "left" and "attackLeft" or "attackRight"
         end
         local enemyFound = false
         -- Hurt at most one enemy.
         for i, enemy in ipairs(_LEVEL.enemies) do
-            if attackHitbox.collidingWith[enemy.physics.shapes.main.fixture] then
+            if self:collidesWith(enemy, attackHitbox, "main") then
                 enemy:hurt(self.direction, dropKick and 2 or 1)
                 enemyFound = true
                 break
@@ -139,7 +138,7 @@ function Player:updateAttack(dt)
 end
 
 function Player:jump()
-    if (not self.ground and self.jumpGraceTime <= 0) or self.jumpDelay then
+    if self.knockTime or (not self.ground and self.jumpGraceTime <= 0) or self.jumpDelay then
         return
     end
     self.jumpDelay = self.JUMP_DELAY_MAX
@@ -147,7 +146,7 @@ function Player:jump()
 end
 
 function Player:attack()
-    if self.attackTime then
+    if self.knockTime or self.attackTime then
         return
     end
     if self.state == self.STATES.idle or self.state == self.STATES.run or self.state == self.STATES.punchLeft or self.state == self.STATES.punchRight then

@@ -37,10 +37,8 @@ function WaterDrop:new(x, y)
     self.SLEEP_SAFE_DISTANCE = 400
 
     -- Physics
-    ---@type table<string, PhysicsShape>
-    self.PHYSICS_SHAPES = {
-        main = {collidable = true}
-    }
+    ---@type table<string, AttackArea>
+    self.ATTACK_AREAS = {}
 
     -- Prepend default fields
     self.super.new(self, x, y)
@@ -90,7 +88,7 @@ end
 function WaterDrop:updateAttack()
     local player = _LEVEL.player
     if self.state == self.STATES.move then
-        if self.physics.shapes.main.collidingWith[player.physics.shapes.main.fixture] then
+        if self:collidesWith(player, "main", "main") then
             player:hurt(player.x < self.x and "left" or "right")
         end
     end

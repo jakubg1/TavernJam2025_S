@@ -26,10 +26,8 @@ function CloudGirl:new(x, y)
     self.PLAYER_DETECTION_RANGE = 800
 
     -- Physics
-    ---@type table<string, PhysicsShape>
-    self.PHYSICS_SHAPES = {
-        main = {collidable = true}
-    }
+    ---@type table<string, AttackArea>
+    self.ATTACK_AREAS = {}
 
     -- Prepend default fields
     self.super.new(self, x, y)
@@ -61,7 +59,7 @@ end
 function CloudGirl:updateAttack()
     local player = _LEVEL.player
     if self.state == self.STATES.fly then
-        if self.physics.shapes.main.collidingWith[player.physics.shapes.main.fixture] then
+        if self:collidesWith(player, "main", "main") then
             player:hurt(self.direction)
         end
     end

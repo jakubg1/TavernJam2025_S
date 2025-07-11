@@ -443,18 +443,6 @@ end
 
 
 
----Returns `true` if the given position is inside of a box of given position and size.
----If the point lies anywhere on the box's edge, the check will still pass.
----@param p Vector2 The point which is checked against.
----@param bp Vector2 The position of the upper left corner of the box.
----@param bs Vector2 The size of the box.
----@return boolean
-function utils.isPointInsideBox(p, bp, bs)
-	return p.x >= bp.x and p.y >= bp.y and p.x <= (bp.x + bs.x) and p.y <= (bp.y + bs.y)
-end
-
-
-
 ---Removes all dead objects from the table `t`. By dead objects we mean objects that have their `delQueue` field set to `true`.
 ---The table must be a list-like. Other keysets are not supported.
 ---@param t table The table to be cleaned up.
@@ -464,6 +452,35 @@ function utils.removeDeadObjects(t)
 			table.remove(t, i)
 		end
 	end
+end
+
+
+
+---Returns `true` if two ranges of numbers intersect (at least one number is common).
+---@param s1 number The start of the first range.
+---@param e1 number The end of the first range.
+---@param s2 number The start of the second range.
+---@param e2 number The end of the second range.
+---@return boolean
+function utils.doRangesIntersect(s1, e1, s2, e2)
+	return s1 <= e2 and s2 <= e1
+end
+
+
+
+---Returns `true` if the first box intersects the second box in any way.
+---@param x1 number X position of the top left corner of the first box.
+---@param y1 number Y position of the top left corner of the first box.
+---@param w1 number Width of the first box.
+---@param h1 number Height of the first box.
+---@param x2 number X position of the top left corner of the second box.
+---@param y2 number Y position of the top left corner of the second box.
+---@param w2 number Width of the second box.
+---@param h2 number Height of the second box.
+---@return boolean
+function utils.doBoxesIntersect(x1, y1, w1, h1, x2, y2, w2, h2)
+	assert(w1 >= 0 and h1 >= 0 and w2 >= 0 and h2 >= 0, "Illegal boxes passed to `_Utils.doBoxesIntersect()`! You must normalize the boxes first using `_Utils.normalizeBox(x, y, w, h)`.")
+	return utils.doRangesIntersect(x1, x1 + w1, x2, x2 + w2) and utils.doRangesIntersect(y1, y1 + h1, y2, y2 + h2)
 end
 
 

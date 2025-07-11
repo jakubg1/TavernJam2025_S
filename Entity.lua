@@ -4,6 +4,8 @@ local Class = require("com.class")
 ---@overload fun(x, y): Entity
 local Entity = Class:derive("Entity")
 
+local EntityAttackArea = require("EntityAttackArea")
+
 ---Constructs a new Entity.
 ---@param x number
 ---@param y number
@@ -24,26 +26,12 @@ function Entity:new(x, y)
     self.invulTime = nil
 
     -- Physics
-    ---@alias PhysicsShape {collidable: boolean?, offsetX: number?, offsetY: number?, width: number?, height: number?}
-    self.physics = {}
-    self.physics.body = love.physics.newBody(_WORLD, self.x, self.y, "dynamic")
-    self.physics.body:setFixedRotation(true)
-    self.physics.body:setMass(25)
-    ---@type table<string, {fixture: love.Fixture, colliderFixture: love.Fixture?, collidingWith: table<love.Fixture, boolean?>}>
-    self.physics.shapes = {}
-    for name, shape in pairs(self.PHYSICS_SHAPES) do
-        local rect = love.physics.newRectangleShape(shape.offsetX or 0, shape.offsetY or 0, shape.width or self.WIDTH, shape.height or self.HEIGHT)
-        local shapeEntity = {}
-        shapeEntity.fixture = love.physics.newFixture(self.physics.body, rect)
-        shapeEntity.fixture:setCategory(2)
-        shapeEntity.fixture:setSensor(true)
-        if shape.collidable then
-            shapeEntity.colliderFixture = love.physics.newFixture(self.physics.body, rect)
-            shapeEntity.colliderFixture:setCategory(2)
-            shapeEntity.colliderFixture:setMask(2)
-        end
-        shapeEntity.collidingWith = {}
-        self.physics.shapes[name] = shapeEntity
+    _WORLD:add(self, self.x, self.y, self.WIDTH, self.HEIGHT)
+    ---@alias AttackArea {offsetX: number?, offsetY: number?, width: number?, height: number?}
+    ---@type table<string, EntityAttackArea>
+    self.attackAreas = {}
+    for name, area in pairs(self.ATTACK_AREAS) do
+        self.attackAreas[name] = EntityAttackArea(self, area.offsetX or 0, area.offsetY or 0, area.width or self.WIDTH, area.height or self.HEIGHT)
     end
 
     -- Appearance
@@ -60,7 +48,7 @@ function Entity:update(dt)
     self:updateMovement(dt)
     self:updateDirection()
     self:updateGravity(dt)
-    self:updatePhysics()
+    self:updatePhysics(dt)
     self:updateKnock(dt)
     self:updateInvulnerability(dt)
     self:updateState()
@@ -99,16 +87,37 @@ end
 ---Increases vertical speed if the entity is not on ground.
 ---@param dt number Time delta in seconds.
 function Entity:updateGravity(dt)
-    if self.ground then
-        return
-    end
     self.speedY = self.speedY + self.GRAVITY * dt
 end
 
 ---Updates the entity state to match its physics body, and updates the physics body's speed to match the entity state.
-function Entity:updatePhysics()
-    self.x, self.y = self.physics.body:getPosition()
-    self.physics.body:setLinearVelocity(self.speedX, self.speedY)
+---@param dt number Time delta in seconds.
+function Entity:updatePhysics(dt)
+    local goalX, goalY = self.x + self.speedX * dt, self.y + self.speedY * dt
+    local filter = function(item, other)
+        local collide = other.isGround and (not other.topOnly or item.ground == other)
+        return collide and "slide" or "cross"
+    end
+    local x, y, cols, len = _WORLD:move(self, goalX, goalY, filter)
+    local previousGround = self.ground
+    self.ground = nil
+    -- I am keeping the debug prints for now, because there still exists a weird glitch where the player
+    -- is pushed out of a top-only platform if they land while moving left/right.
+    --print(".")
+    for i, col in ipairs(cols) do
+        local other = col.other
+        if other.isGround then
+            --print(col.normal.x, col.normal.y, col.overlaps, previousGround)
+        end
+        if other.isGround and (not other.topOnly or col.normal.y < -1e-9 and (not col.overlaps or previousGround)) then
+            self:landOn(other)
+            --print("- Landed!")
+        end
+    end
+    self.x, self.y = x, y
+    for name, area in pairs(self.attackAreas) do
+        area:updatePhysics()
+    end
 end
 
 ---Updates the knockout timer. While knocked and in air, the player cannot control the entity.
@@ -206,7 +215,7 @@ function Entity:knock(speedX, speedY)
     self.speedX = speedX
     self.speedY = speedY
     self.knockTime = self.KNOCK_TIME_MAX
-    -- We need to reset ground here, because `endContact` will trigger in the next frame, causing the `knockTime` state to immediately reset.
+    -- We need to reset ground here, because otherwise it would be reset in the next frame, causing the `knockTime` state to immediately reset.
     self.ground = nil
 end
 
@@ -243,7 +252,7 @@ function Entity:destroy()
         return
     end
     self.delQueue = true
-    self.physics.body:destroy()
+    _WORLD:remove(self)
 end
 
 ---Returns the horizontal distance to the player.
@@ -264,65 +273,17 @@ function Entity:keyreleased(key)
     -- Filled out by subclasses
 end
 
----Executed when any hitbox started touching another hitbox.
----@param a love.Fixture First fixture.
----@param b love.Fixture Second fixture.
----@param collision love.Contact The collision.
-function Entity:beginContact(a, b, collision)
-    local nx, ny = collision:getNormal()
-
-    for name, shape in pairs(self.physics.shapes) do
-        -- Update collisions.
-        if a == shape.fixture then
-            shape.collidingWith[b] = true
-        elseif b == shape.fixture then
-            shape.collidingWith[a] = true
-        end
-
-        -- Handle ground contact.
-        -- We can be either `a` or `b` in the collision.
-        if a == shape.colliderFixture and b:getCategory() == 1 then
-            if ny > 0 then
-                self:landOn(b)
-            elseif ny < 0 then
-                -- Bounce off the ceiling.
-                self.speedY = 0
-            end
-        elseif b == shape.colliderFixture and a:getCategory() == 1 then
-            if ny < 0 then
-                self:landOn(a)
-            elseif ny > 0 then
-                -- Bounce off the ceiling.
-                self.speedY = 0
-            end
-        end
-    end
-end
-
----Executed when any hitbox finished touching another hitbox.
----@param a love.Fixture First fixture.
----@param b love.Fixture Second fixture.
----@param collision love.Contact The collision.
-function Entity:endContact(a, b, collision)
-    for name, shape in pairs(self.physics.shapes) do
-        -- Update collisions.
-        if a == shape.fixture then
-            shape.collidingWith[b] = nil
-        elseif b == shape.fixture then
-            shape.collidingWith[a] = nil
-        end
-
-        -- Handle ground contact.
-        if a == shape.colliderFixture then
-            if self.ground == b then
-                self.ground = nil
-            end
-        elseif b == shape.colliderFixture then
-            if self.ground == a then
-                self.ground = nil
-            end
-        end
-    end
+---Checks if this entity's specified shape is colliding with the provided entity's body or attack area.
+---@param other Entity The other entity to check whether we're colliding with.
+---@param attackArea string? This entity's attack area to be checked. If not specified, main body collision will be checked.
+---@param otherAttackArea string? The other entity's attack area to be checked. If not specified, main body collision will be checked.
+---@return boolean
+function Entity:collidesWith(other, attackArea, otherAttackArea)
+    local a = attackArea and self.attackAreas[attackArea] or self
+    local b = otherAttackArea and other.attackAreas[otherAttackArea] or other
+    local x1, y1, w1, h1 = _WORLD:getRect(a)
+    local x2, y2, w2, h2 = _WORLD:getRect(b)
+    return _Utils.doBoxesIntersect(x1, y1, w1, h1, x2, y2, w2, h2)
 end
 
 ---Draws the Entity on the screen.
@@ -335,8 +296,8 @@ function Entity:drawSprite()
     local frame = self.state.reverse and self.state.frames - self.stateFrame + 1 or self.stateFrame
     local img = self.SPRITES:getImage(self.state.state, frame)
     local flipped = self.direction == "left" and not self.state.noFlip
-    local x = self.x + self.OFFSET_X + (flipped and self.FLIP_AXIS_OFFSET or -self.FLIP_AXIS_OFFSET)
-    local y = self.y + self.OFFSET_Y
+    local x = self.x + self.WIDTH / 2 + self.OFFSET_X + (flipped and self.FLIP_AXIS_OFFSET or -self.FLIP_AXIS_OFFSET)
+    local y = self.y + self.HEIGHT / 2 + self.OFFSET_Y
     local scaleX = flipped and -self.SCALE or self.SCALE
     local scaleY = self.SCALE
     local width = self.SPRITES.imageWidth / 2
@@ -359,16 +320,17 @@ function Entity:drawHitbox()
         return
     end
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("line", self.x - self.WIDTH / 2, self.y - self.HEIGHT / 2, self.WIDTH, self.HEIGHT)
+    love.graphics.rectangle("line", self.x, self.y, self.WIDTH, self.HEIGHT)
     if self.invulTime then
         local t = self.invulTime / self.INVUL_TIME_MAX
-        love.graphics.rectangle("fill", self.x - self.WIDTH / 2, self.y - self.HEIGHT / 2 - self.HEIGHT * (t - 1), self.WIDTH, self.HEIGHT * t)
+        love.graphics.rectangle("fill", self.x, self.y - self.HEIGHT * (t - 1), self.WIDTH, self.HEIGHT * t)
     end
-    love.graphics.setColor(1, 0, 1)
-    for name, shape in pairs(self.physics.shapes) do
-        local x1, y1, x2, y2 = shape.fixture:getBoundingBox()
-        love.graphics.rectangle("line", x1, y1, x2 - x1, y2 - y1)
+    for name, area in pairs(self.attackAreas) do
+        area:drawHitbox()
     end
+    love.graphics.setColor(1, 0.5, 0)
+    local x, y, w, h = _WORLD:getRect(self)
+    love.graphics.rectangle("line", x, y, w, h)
 end
 
 return Entity

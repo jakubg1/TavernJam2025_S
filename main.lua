@@ -1,5 +1,6 @@
 _Utils = require("com.utils")
 
+local bump = require("com.bump")
 local Spritesheet = require("Spritesheet")
 local Level = require("Level")
 local DialogText = require("DialogText")
@@ -21,12 +22,15 @@ function love.load()
 		_SPRITES[name] = Spritesheet(data)
 	end
 
+	_LEVEL_BG = love.graphics.newImage("assets/Level_Picnic/background.png")
+	_LEVEL_FG = love.graphics.newImage("assets/Level_Picnic/foreground.png")
+	_LEVEL_SKY = love.graphics.newImage("assets/Level_Picnic/sky.png")
+
 	_FONT_TMP = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
 	_WHITE_SHADER = love.graphics.newShader("assets/whiten.glsl")
 
 	-- Game logic
-	_WORLD = love.physics.newWorld()
-	_WORLD:setCallbacks(_BeginContact, _EndContact)
+	_WORLD = bump.newWorld()
 	_LEVEL = Level()
 
 	-- Tests
@@ -38,7 +42,6 @@ function love.update(dt)
 	if love.keyboard.isDown("space") then
 		dt = dt / 5
 	end
-	_WORLD:update(dt)
 	_LEVEL:update(dt)
 end
 
@@ -56,12 +59,4 @@ end
 function love.draw()
 	_LEVEL:draw()
 	--_TEXT:draw()
-end
-
-function _BeginContact(a, b, collision)
-	_LEVEL:beginContact(a, b, collision)
-end
-
-function _EndContact(a, b, collision)
-	_LEVEL:endContact(a, b, collision)
 end

@@ -35,11 +35,10 @@ function WaterGirl:new(x, y)
     self.ATTACK_COOLDOWN_MAX = 2.5
 
     -- Physics
-    ---@type table<string, PhysicsShape>
-    self.PHYSICS_SHAPES = {
-        main = {collidable = true},
-        attackLeft = {offsetX = -self.ATTACK_RANGE / 2 - self.WIDTH / 2, width = self.ATTACK_RANGE},
-        attackRight = {offsetX = self.ATTACK_RANGE / 2 + self.WIDTH / 2, width = self.ATTACK_RANGE}
+    ---@type table<string, AttackArea>
+    self.ATTACK_AREAS = {
+        attackLeft = {offsetX = -self.ATTACK_RANGE, width = self.ATTACK_RANGE},
+        attackRight = {offsetX = self.WIDTH, width = self.ATTACK_RANGE}
     }
 
     -- Prepend default fields
@@ -60,11 +59,7 @@ end
 function WaterGirl:updateAttack()
     local player = _LEVEL.player
     if self.state == self.STATES.attack and self.stateFrame >= 5 and self.stateFrame <= 9 then
-        local shapes = self.physics.shapes
-        local playerFixture = player.physics.shapes.main.fixture
-        local leftCollision = shapes.main.collidingWith[playerFixture] or shapes.attackLeft.collidingWith[playerFixture]
-        local rightCollision = shapes.main.collidingWith[playerFixture] or shapes.attackRight.collidingWith[playerFixture]
-        if self.direction == "left" and leftCollision or self.direction == "right" and rightCollision then
+        if self:collidesWith(player, "main", "main") or self:collidesWith(player, self.direction == "left" and "attackLeft" or "attackRight", "main") then
             player:hurt(self.direction)
         end
     end

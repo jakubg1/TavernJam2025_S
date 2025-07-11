@@ -7,11 +7,11 @@ local Player = Entity:derive("Player")
 ---Constructs the Player.
 function Player:new(x, y)
     -- Parameters
-    self.WIDTH, self.HEIGHT = 64, 128
-    self.SCALE = 0.25
-    self.OFFSET_X, self.OFFSET_Y = 0, -28
+    self.WIDTH, self.HEIGHT = 80, 160
+    self.SCALE = 0.3125
+    self.OFFSET_X, self.OFFSET_Y = 0, -35
     self.FLIP_AXIS_OFFSET = 0
-    self.MAX_SPEED = 600
+    self.MAX_SPEED = 700
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500

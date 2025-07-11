@@ -14,14 +14,22 @@ local Shark = require("Entities.Shark")
 
 function Level:new()
     self.grounds = {
-        Ground(0, 1625, 30000, 200),
+        Ground(0, 1675, 30000, 200),
         Ground(2275, 1515, 75, 1, true),
         Ground(2395, 1475, 105, 1, true),
-        Ground(2505, 1400, 145, 1, true)
+        Ground(2495, 1400, 165, 1, true),
+        Ground(2700, 1330, 960, 1, true),
+        Ground(3655, 1275, 165, 1, true),
+        Ground(3875, 1425, 100, 1, true),
+        Ground(4075, 1490, 295, 1, true)
     }
 	self.player = Player(100, 1625)
     self.enemies = {
-        --WaterDrop(1500, 1625),
+        WaterDrop(2900, 1625),
+        WaterDrop(3500, 1625),
+        WaterGirl(5300, 1625),
+        WaterDrop(5900, 1625),
+        WaterGirl(6800, 1625),
         --WaterDrop(1400, 1625),
         --WaterDrop(1300, 1625),
         --WaterGirl(900, 1625),

@@ -7,9 +7,9 @@ local WaterGirl = Entity:derive("WaterGirl")
 ---Constructs the WaterGirl.
 function WaterGirl:new(x, y)
     -- Parameters
-    self.WIDTH, self.HEIGHT = 80, 128
-    self.SCALE = 0.25
-    self.OFFSET_X, self.OFFSET_Y = 0, -48
+    self.WIDTH, self.HEIGHT = 100, 160
+    self.SCALE = 0.3125
+    self.OFFSET_X, self.OFFSET_Y = 0, -60
     self.FLIP_AXIS_OFFSET = -45
     self.MAX_SPEED = 0
     self.MAX_ACC = 4000
@@ -29,7 +29,7 @@ function WaterGirl:new(x, y)
     self.SPRITES = _SPRITES.waterGirl
 
     -- Water Girl exclusive parameters
-    self.ATTACK_RANGE = 135 -- The width of attack hitboxes
+    self.ATTACK_RANGE = 160 -- The width of attack hitboxes
     self.ATTACK_PROXIMITY = self.ATTACK_RANGE + self.WIDTH + 40 -- The amount of pixels in front of which she will attack
     self.ATTACK_COOLDOWN_MIN = 1.5
     self.ATTACK_COOLDOWN_MAX = 2.5

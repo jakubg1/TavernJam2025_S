@@ -14,7 +14,7 @@ function Ground:new(x, y, width, height, topOnly)
 end
 
 function Ground:draw()
-    self:drawRect()
+    --self:drawRect()
     self:drawHitbox()
 end
 

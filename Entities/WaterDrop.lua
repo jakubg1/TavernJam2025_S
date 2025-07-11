@@ -7,11 +7,11 @@ local WaterDrop = Entity:derive("WaterDrop")
 ---Constructs the WaterDrop.
 function WaterDrop:new(x, y)
     -- Parameters
-    self.WIDTH, self.HEIGHT = 64, 80
-    self.SCALE = 0.25
-    self.OFFSET_X, self.OFFSET_Y = 0, -70
+    self.WIDTH, self.HEIGHT = 80, 100
+    self.SCALE = 0.3125
+    self.OFFSET_X, self.OFFSET_Y = 0, -88
     self.FLIP_AXIS_OFFSET = 0
-    self.MAX_SPEED = 100
+    self.MAX_SPEED = 150
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
@@ -31,10 +31,10 @@ function WaterDrop:new(x, y)
     self.SPRITES = _SPRITES.waterDrop
 
     -- Water Drop exclusive parameters
-    self.STRAFE_RANGE = 100
-    self.PLAYER_DETECTION_RANGE = 200
+    self.STRAFE_RANGE = 200
+    self.PLAYER_DETECTION_RANGE = 300
     self.SLEEP_DELAY_MAX = 3
-    self.SLEEP_SAFE_DISTANCE = 400
+    self.SLEEP_SAFE_DISTANCE = 500
 
     -- Physics
     ---@type table<string, AttackArea>

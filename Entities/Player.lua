@@ -38,6 +38,9 @@ function Player:new(x, y)
     self.JUMP_SPEED = -1000
     self.JUMP_DELAY_MAX = 1/15
     self.JUMP_GRACE_TIME_MAX = 0.1
+    self.WALL_JUMP_SPEED_X = 1000
+    self.WALL_JUMP_SPEED_Y = -1000
+    self.WALL_JUMP_THRESHOLD = 40
     self.ATTACK_DELAY = 0.15
     self.ATTACK_RANGE = 80 -- The width of attack hitboxes
     self.DROP_ATTACK_SPEED = -700
@@ -57,6 +60,7 @@ function Player:new(x, y)
     -- State
     self.jumpDelay = nil
     self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
+    self.lastWallJumpDirection = nil
     self.attackTime = nil
     self.nextPunchRight = false
 end
@@ -67,6 +71,7 @@ function Player:update(dt)
     self:move(dt)
     self:updateJumpDelay(dt)
     self:updateJumpGrace(dt)
+    self:updateWallJumpLastDirection()
     self:updateAttack(dt)
     self.super.update(self, dt)
 end
@@ -79,8 +84,10 @@ function Player:move(dt)
         self.accX = 0
     elseif left and not right then
         self.accX = -self.MAX_ACC
+        self.direction = "left"
     elseif right and not left then
         self.accX = self.MAX_ACC
+        self.direction = "right"
     else
         self.accX = 0
         self:applyDrag(dt)
@@ -105,6 +112,12 @@ function Player:updateJumpGrace(dt)
         self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
     else
         self.jumpGraceTime = math.max(self.jumpGraceTime - dt, 0)
+    end
+end
+
+function Player:updateWallJumpLastDirection()
+    if self.ground then
+        self.lastWallJumpDirection = nil
     end
 end
 
@@ -138,11 +151,23 @@ function Player:updateAttack(dt)
 end
 
 function Player:jump()
-    if self.knockTime or (not self.ground and self.jumpGraceTime <= 0) or self.jumpDelay then
+    if self.knockTime or self.jumpDelay then
         return
     end
-    self.jumpDelay = self.JUMP_DELAY_MAX
-    self.jumpGraceTime = 0
+    if self.ground or self.jumpGraceTime > 0 then
+        self.jumpDelay = self.JUMP_DELAY_MAX
+        self.jumpGraceTime = 0
+    elseif self.direction ~= self.lastWallJumpDirection then
+        if self.direction == "left" and self:isCloseToWall(-self.WALL_JUMP_THRESHOLD) then
+            self.speedX = self.WALL_JUMP_SPEED_X
+            self.speedY = self.WALL_JUMP_SPEED_Y
+            self.lastWallJumpDirection = self.direction
+        elseif self.direction == "right" and self:isCloseToWall(self.WALL_JUMP_THRESHOLD) then
+            self.speedX = -self.WALL_JUMP_SPEED_X
+            self.speedY = self.WALL_JUMP_SPEED_Y
+            self.lastWallJumpDirection = self.direction
+        end
+    end
 end
 
 function Player:attack()

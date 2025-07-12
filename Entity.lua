@@ -6,6 +6,11 @@ local Entity = Class:derive("Entity")
 
 local EntityAttackArea = require("EntityAttackArea")
 
+local collisionFilter = function(item, other)
+    local collide = other.isGround and (not other.topOnly or item.ground == other)
+    return collide and "slide" or "cross"
+end
+
 ---Constructs a new Entity.
 ---@param x number
 ---@param y number
@@ -59,8 +64,11 @@ end
 -- Applies the acceleration and caps the speed.
 ---@param dt number Time delta in seconds.
 function Entity:updateMovement(dt)
+    if self.speedX < -self.MAX_SPEED and self.accX < 0 or self.speedX > self.MAX_SPEED and self.accX > 0 then
+        self.accX = 0
+    end
     self.speedX = self.speedX + self.accX * dt
-    if not self.knockTime then
+    if not self.knockTime and self.ground then
         self.speedX = math.min(math.max(self.speedX, -self.MAX_SPEED), self.MAX_SPEED)
     end
 end
@@ -94,11 +102,7 @@ end
 ---@param dt number Time delta in seconds.
 function Entity:updatePhysics(dt)
     local goalX, goalY = self.x + self.speedX * dt, self.y + self.speedY * dt
-    local filter = function(item, other)
-        local collide = other.isGround and (not other.topOnly or item.ground == other)
-        return collide and "slide" or "cross"
-    end
-    local x, y, cols, len = _WORLD:move(self, goalX, goalY, filter)
+    local x, y, cols, len = _WORLD:move(self, goalX, goalY, collisionFilter)
     local previousGround = self.ground
     self.ground = nil
     -- I am keeping the debug prints for now, because there still exists a weird glitch where the player
@@ -108,10 +112,16 @@ function Entity:updatePhysics(dt)
         local other = col.other
         if other.isGround then
             --print(col.normal.x, col.normal.y, col.overlaps, previousGround)
-        end
-        if other.isGround and (not other.topOnly or col.normal.y < -1e-9 and (not col.overlaps or previousGround)) then
-            self:landOn(other)
-            --print("- Landed!")
+            --print(string.format("%s or %s and (%s or %s)", not other.topOnly, col.normal.y < 0, not col.overlaps, previousGround ~= nil))
+            if not other.topOnly and col.normal.x ~= 0 then
+                -- We're against a wall.
+                self.speedX = 0
+                --print("- Banged!")
+            elseif not other.topOnly or col.normal.y < 0 and (not col.overlaps or previousGround) then
+                -- We're landing on ground.
+                self:landOn(other)
+                --print("- Landed!")
+            end
         end
     end
     self.x, self.y = x, y
@@ -259,6 +269,20 @@ end
 ---@return number
 function Entity:getProximityToPlayer()
     return math.abs(self.x - _LEVEL.player.x)
+end
+
+---Returns `true` if in the provided distance there is a wall (non-top-only ground).
+---@param distance number The distance to check. Positive numbers check to the right, negative to the left.
+---@return boolean
+function Entity:isCloseToWall(distance)
+    local x, y, cols, len = _WORLD:check(self, self.x + distance, self.y, collisionFilter)
+    for i, col in ipairs(cols) do
+        local other = col.other
+        if other.isGround and not other.topOnly then
+            return true
+        end
+    end
+    return false
 end
 
 ---Executed when key is pressed.

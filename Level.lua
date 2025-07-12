@@ -1,7 +1,7 @@
 local Class = require("com.class")
 
 ---@class Level : Class
----@overload fun(): Level
+---@overload fun(data): Level
 local Level = Class:derive("Level")
 
 local Ground = require("Ground")
@@ -12,24 +12,13 @@ local WaterDrop = require("Entities.WaterDrop")
 local WaterGirl = require("Entities.WaterGirl")
 local Shark = require("Entities.Shark")
 
-function Level:new()
-    self.grounds = {
-        Ground(0, 1675, 30000, 200),
-        Ground(2275, 1515, 75, 1, true),
-        Ground(2395, 1475, 105, 1, true),
-        Ground(2495, 1400, 165, 1, true),
-        Ground(2700, 1330, 960, 1, true),
-        Ground(3655, 1275, 165, 1, true),
-        Ground(3875, 1425, 100, 1, true),
-        Ground(4075, 1490, 295, 1, true)
-    }
-	self.player = Player(100, 1625)
+function Level:new(data)
+	self.player = Player(data.playerSpawnX, data.playerSpawnY)
+    self.grounds = {}
+    for i, ground in ipairs(data.grounds) do
+        self.grounds[i] = Ground(ground.x, ground.y, ground.w, ground.h, ground.topOnly)
+    end
     self.enemies = {
-        WaterDrop(2900, 1625),
-        WaterDrop(3500, 1625),
-        WaterGirl(5300, 1625),
-        WaterDrop(5900, 1625),
-        WaterGirl(6800, 1625),
         --WaterDrop(1400, 1625),
         --WaterDrop(1300, 1625),
         --WaterGirl(900, 1625),
@@ -39,11 +28,21 @@ function Level:new()
         --FishBoy(700, 1625, true),
         --CloudGirl(500, 1300)
     }
+    for i, entity in ipairs(data.entities) do
+        if entity.type == "WaterDrop" then
+            self.enemies[i] = WaterDrop(entity.x, entity.y)
+        elseif entity.type == "WaterGirl" then
+            self.enemies[i] = WaterGirl(entity.x, entity.y)
+        end
+    end
 
-    self.FG_SCALE = 0.5
-    self.BG_SCALE = self.FG_SCALE * 0.81
-    self.CAMERA_X_MAX = _LEVEL_FG:getWidth() * self.FG_SCALE
-    self.CAMERA_Y_MAX = _LEVEL_FG:getHeight() * self.FG_SCALE
+    self.foregroundImg = data.foregroundImg
+    self.foregroundScale = data.foregroundScale
+    self.backgroundImg = data.backgroundImg
+    self.backgroundScale = data.backgroundScale
+
+    self.CAMERA_X_MAX = self.foregroundImg:getWidth() * self.foregroundScale
+    self.CAMERA_Y_MAX = self.foregroundImg:getHeight() * self.foregroundScale
     self.cameraX = 0
     self.cameraY = 0
 
@@ -91,8 +90,8 @@ function Level:drawBackground()
     love.graphics.rectangle("fill", 0, 0, w, h)
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(_LEVEL_SKY)
-    love.graphics.draw(_LEVEL_BG, (-self.cameraX + w / 2) * 0.75, (-self.cameraY + h / 2 + 200) * 0.75, 0, self.BG_SCALE)
-    love.graphics.draw(_LEVEL_FG, -self.cameraX + w / 2, -self.cameraY + h / 2, 0, self.FG_SCALE)
+    love.graphics.draw(self.backgroundImg, (-self.cameraX + w / 2) * 0.75, (-self.cameraY + h / 2 + 200) * 0.75, 0, self.backgroundScale)
+    love.graphics.draw(self.foregroundImg, -self.cameraX + w / 2, -self.cameraY + h / 2, 0, self.foregroundScale)
 end
 
 function Level:drawEntities()

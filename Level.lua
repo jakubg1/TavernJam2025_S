@@ -8,6 +8,7 @@ local Ground = require("Ground")
 local Player = require("Entities.Player")
 local CloudGirl = require("Entities.CloudGirl")
 local FishBoy = require("Entities.FishBoy")
+local JumpyCloudy = require("Entities.JumpyCloudy")
 local WaterDrop = require("Entities.WaterDrop")
 local WaterGirl = require("Entities.WaterGirl")
 local Shark = require("Entities.Shark")
@@ -41,6 +42,10 @@ function Level:new(data)
 end
 
 function Level:init()
+    if self.enemies then
+        self:destroyEntities()
+    end
+
 	self.player = Player(self.data.playerSpawnX, self.data.playerSpawnY)
     self.grounds = {}
     for i, ground in ipairs(self.data.grounds) do
@@ -61,6 +66,8 @@ function Level:init()
             self.enemies[i] = WaterDrop(entity.x, entity.y)
         elseif entity.type == "WaterGirl" then
             self.enemies[i] = WaterGirl(entity.x, entity.y)
+        elseif entity.type == "JumpyCloudy" then
+            self.enemies[i] = JumpyCloudy(entity.x, entity.y)
         elseif entity.type == "NPC" then
             self.enemies[i] = NPC(entity.x, entity.y, entity.name)
         end
@@ -106,6 +113,13 @@ end
 
 function Level:keyreleased(key)
     self.player:keyreleased(key)
+end
+
+function Level:destroyEntities()
+    self.player:destroy()
+    for i, enemy in ipairs(self.enemies) do
+        enemy:destroy()
+    end
 end
 
 function Level:draw()

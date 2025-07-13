@@ -10,6 +10,7 @@ function love.load()
 	local spriteData = {
 		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 6, fall = 2, defeat = 1}},
 		cloudGirl = {directory = "assets/Cloud_Girl/", states = {idle = 9}},
+		jumpyCloudy = {directory = "assets/Jumpy_Cloudy/", states = {idle = 5, rise = 16, idle2 = 4, attack = 35}},
 		fishBoy = {directory = "assets/Fish_Boy/", states = {attack = 21, idle = 10}},
 		fishBoyGold = {directory = "assets/Fish_Boy_Gold/", states = {attack = 21, idle = 10}},
 		waterDrop = {directory = "assets/Water_Drop/", states = {defeat = 5, idle = 4, move = 4, rise = 5}},
@@ -52,6 +53,7 @@ function love.load()
 			{x = 4075, y = 1490, w = 295, h = 1, topOnly = true}
 		},
 		entities = {
+			{type = "JumpyCloudy", x = 1000, y = 1625},
 			{type = "WaterDrop", x = 2900, y = 1625},
 			{type = "WaterDrop", x = 3500, y = 1625},
 			{type = "WaterGirl", x = 5300, y = 1625},

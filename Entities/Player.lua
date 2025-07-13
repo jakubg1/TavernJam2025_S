@@ -15,10 +15,10 @@ function Player:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    self.MAX_HEALTH = 4
+    self.MAX_HEALTH = 8
     self.KNOCK_X, self.KNOCK_Y = 600, 600
     self.KNOCK_TIME_MAX = 10.3
-    self.INVUL_TIME_MAX = 1
+    self.INVUL_TIME_MAX = 0.5
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 6, framerate = 15},
@@ -29,7 +29,9 @@ function Player:new(x, y)
         land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"},
         punchLeft = {state = "leftpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
         punchRight = {state = "rightpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
-        dropKick = {state = "dropkick", start = 1, frames = 6, framerate = 15, onFinish = "fall"}
+        dropKick = {state = "dropkick", start = 1, frames = 6, framerate = 15, onFinish = "fall"},
+        defeat = {state = "defeat", start = 1, frames = 1, framerate = 15, onFinish = "dead"},
+        dead = {state = "defeat", start = 1, frames = 1, framerate = 15}
     }
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _SPRITES.player
@@ -78,8 +80,8 @@ end
 
 function Player:move(dt)
     -- Calculate the current acceleration.
-    local left = love.keyboard.isDown("a", "left")
-    local right = love.keyboard.isDown("d", "right")
+    local left = love.keyboard.isDown("a", "left") and not self.dead
+    local right = love.keyboard.isDown("d", "right") and not self.dead
     if self.knockTime then
         self.accX = 0
     elseif left and not right then
@@ -151,7 +153,7 @@ function Player:updateAttack(dt)
 end
 
 function Player:jump()
-    if self.knockTime or self.jumpDelay then
+    if self.dead or self.knockTime or self.jumpDelay then
         return
     end
     if self.ground or self.jumpGraceTime > 0 then
@@ -171,7 +173,7 @@ function Player:jump()
 end
 
 function Player:attack()
-    if self.knockTime or self.attackTime then
+    if self.dead or self.knockTime or self.attackTime then
         return
     end
     if self.state == self.STATES.idle or self.state == self.STATES.run or self.state == self.STATES.punchLeft or self.state == self.STATES.punchRight then
@@ -184,7 +186,7 @@ end
 
 function Player:canBeAttacked()
     -- The player cannot be attacked if they are invulnerable.
-    if self.invulTime then
+    if self.invulTime or self.dead then
         return false
     end
     -- The player cannot be attacked if they are performing a drop kick.
@@ -201,33 +203,43 @@ function Player:updateState()
     local landing = self.ground ~= nil and not self.jumpDelay
     local attacking = self.attackTime ~= nil
     local attackRight = self.nextPunchRight
+    local dead = self.dead
     if self.state == self.STATES.idle then
         self:setState("run", moving)
         self:setState("jumpPrep", jumping)
         self:setState("fall", falling)
         self:setState("punchLeft", attacking and not attackRight)
         self:setState("punchRight", attacking and attackRight)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.run then
         self:setState("idle", not moving)
         self:setState("jumpPrep", jumping)
         self:setState("fall", falling)
         self:setState("punchLeft", attacking and not attackRight)
         self:setState("punchRight", attacking and attackRight)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.jumpPrep then
         self:setState("land", landing)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.jump then
         self:setState("land", landing)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.fall then
         self:setState("land", landing)
         self:setState("dropKick", attacking)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.land then
         self:setState("run", moving)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.punchLeft then
         self:setState("punchRight", attacking and attackRight)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.punchRight then
         self:setState("punchLeft", attacking and not attackRight)
+        self:setState("defeat", dead)
     elseif self.state == self.STATES.dropKick then
         self:setState("land", landing)
+        self:setState("defeat", dead)
     end
 end
 

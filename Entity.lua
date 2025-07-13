@@ -40,7 +40,7 @@ function Entity:new(x, y)
     end
 
     -- Appearance
-    ---@alias SpriteState {state: string, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
+    ---@alias SpriteState {state: string, flipState: string?, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
     self.state = self.STARTING_STATE
     self.stateFrame = 1
     self.stateTime = 0
@@ -318,8 +318,9 @@ end
 
 function Entity:drawSprite()
     local frame = self.state.reverse and self.state.frames - self.stateFrame + 1 or self.stateFrame
-    local img = self.SPRITES:getImage(self.state.state, frame)
-    local flipped = self.direction == "left" and not self.state.noFlip
+    local state = self.direction == "left" and self.state.flipState or self.state.state
+    local img = self.SPRITES:getImage(state, frame)
+    local flipped = self.direction == "left" and not self.state.noFlip and not self.state.flipState
     local x = self.x + self.WIDTH / 2 + self.OFFSET_X + (flipped and self.FLIP_AXIS_OFFSET or -self.FLIP_AXIS_OFFSET)
     local y = self.y + self.HEIGHT / 2 + self.OFFSET_Y
     local scaleX = flipped and -self.SCALE or self.SCALE

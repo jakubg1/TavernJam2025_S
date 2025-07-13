@@ -131,6 +131,7 @@ function Cutscene:draw()
         local dialogThisX = line.side == "right" and dialog.x or w - dialog.x
         local dialogPrevX = prevLine and (prevLine.side == "right" and dialog.x or w - dialog.x) or dialogThisX
         local dialogX = _Utils.interpolateClamped(dialogPrevX, dialogThisX, t)
+        love.graphics.setColor(0, 0, 0, 0.8)
         love.graphics.draw(dialog.image, dialogX, dialog.y, 0, 1, 1, dialog.image:getWidth() / 2)
         love.graphics.setColor(1, 1, 1)
         local text = _Utils.ctextSub(line.text, 1, math.floor(math.max(self.lineTime - self.TEXT_TIME_OFFSET, 0) * self.TEXT_CPS))

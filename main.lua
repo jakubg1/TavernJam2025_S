@@ -8,14 +8,18 @@ local DialogText = require("Cutscene")
 function love.load()
 	-- Resources
 	local spriteData = {
-		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 6, fall = 2}},
+		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 6, fall = 2, defeat = 1}},
 		cloudGirl = {directory = "assets/Cloud_Girl/", states = {idle = 9}},
 		fishBoy = {directory = "assets/Fish_Boy/", states = {attack = 21, idle = 10}},
 		fishBoyGold = {directory = "assets/Fish_Boy_Gold/", states = {attack = 21, idle = 10}},
 		waterDrop = {directory = "assets/Water_Drop/", states = {defeat = 5, idle = 4, move = 4, rise = 5}},
 		waterGirl = {directory = "assets/Water_Girl/", states = {attack = 13, defeat = 5, idle = 5}},
 		sharkMan = {directory = "assets/Shark_Man/", states = {attack = 24, fly = 18, idle = 10}},
-		sharkWoman = {directory = "assets/Shark_Woman/", states = {attack = 24, fly = 18, idle = 10}}
+		sharkWoman = {directory = "assets/Shark_Woman/", states = {attack = 24, fly = 18, idle = 10}},
+		npcClarissa = {directory = "assets/Clarissa/", states = {idleleft = 5, idleright = 5}},
+		npcHoney = {directory = "assets/Honey/", states = {idleleft = 5, idleright = 5}},
+		npcJeremy = {directory = "assets/Jeremy/", states = {idleleft = 5, idleright = 5}},
+		npcMila = {directory = "assets/Mila/", states = {idleleft = 5, idleright = 5}},
 	}
 	---@type table<string, Spritesheet>
 	_SPRITES = {}
@@ -64,6 +68,7 @@ function love.load()
 		playerSpawnX = 100,
 		playerSpawnY = 125,
 		grounds = {
+			{x = 800, y = 500, w = 120, h = 1, topOnly = true},
 			{x = 0, y = 1670, w = 20000, h = 1},
 			{x = 0, y = 0, w = 1, h = 2000},
 			{x = 0, y = 675, w = 2810, h = 1},
@@ -79,7 +84,12 @@ function love.load()
 			{x = 1525, y = 720, w = 1, h = 250},
 			{x = 4800, y = 860, w = 1, h = 810}
 		},
-		entities = {},
+		entities = {
+			{type = "NPC", x = 500, y = 125, name = "Mila"},
+			{type = "NPC", x = 600, y = 125, name = "Jeremy"},
+			{type = "NPC", x = 700, y = 125, name = "Honey"},
+			{type = "NPC", x = 800, y = 125, name = "Clarissa"}
+		},
 		foregroundImg = _LEVEL2_FG,
 		foregroundScale = 0.5,
 		backgroundImg = _LEVEL_BG,
@@ -88,11 +98,11 @@ function love.load()
 
 	-- Game logic
 	_WORLD = bump.newWorld()
-	_LEVEL = Level(level2Data)
+	_LEVEL = Level(levelData)
 	_CUTSCENE = DialogText()
 
 	-- Debug
-	_HITBOXES = false
+	_HITBOXES = true
 end
 
 function love.update(dt)

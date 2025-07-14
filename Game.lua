@@ -25,7 +25,7 @@ end
 
 function Game:start()
     self.lives = 3
-    self.level = Level(_LEVEL_DATA)
+    self.level = Level(_LEVEL_WT_DATA)
 end
 
 function Game:keypressed(key)
@@ -54,6 +54,8 @@ function Game:mousepressed(x, y, button)
     end
     if self.cutscene:isActive() then
         self.cutscene:mousepressed(x, y, button)
+    else
+        self.level:mousepressed(x, y, button)
     end
 end
 

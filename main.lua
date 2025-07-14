@@ -7,6 +7,8 @@ local Game = require("Game")
 local Settings = require("Settings")
 
 function love.load()
+	_PRODUCTION = false
+
 	-- Resources
 	local spriteData = {
 		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 6, fall = 2, walljump = 6, ko = 8}},
@@ -47,6 +49,7 @@ function love.load()
 	_LEVEL_FG = love.graphics.newImage("assets/Level_Picnic/foreground.png")
 	_LEVEL_SKY = love.graphics.newImage("assets/Level_Picnic/sky.png")
 	_LEVEL2_FG = love.graphics.newImage("assets/Level_2/foreground.png")
+	_LEVEL_WT_FG = love.graphics.newImage("assets/Level_Water_Tower/foreground.png")
 
 	_HEARTS = {}
 	for i = 0, 4 do
@@ -125,6 +128,39 @@ function love.load()
 		backgroundScale = 0.5 * 0.81
 	}
 
+	_LEVEL_WT_DATA = {
+		playerSpawnX = 100,
+		playerSpawnY = 125,
+		grounds = {
+			{x = 0, y = 6940, w = 2000, h = 1},
+			{x = 0, y = 0, w = 1, h = 7000, nonslidable = true},
+			{x = 2120, y = 0, w = 1, h = 7000, nonslidable = true},
+			{x = 1743, y = 6838, w = 113, h = 1, topOnly = true},
+			{x = 1640, y = 6742, w = 100, h = 1, topOnly = true},
+			{x = 1839, y = 6637, w = 146, h = 1, topOnly = true},
+			{x = 1371, y = 6496, w = 449, h = 1, topOnly = true},
+			{x = 1644, y = 6281, w = 202, h = 1, topOnly = true},
+			{x = 1642, y = 6118, w = 204, h = 1, topOnly = true},
+			{x = 1986, y = 4595, w = 1, h = 1987},
+			{x = 1644, y = 5962, w = 217, h = 1, topOnly = true},
+			{x = 1643, y = 5821, w = 212, h = 1, topOnly = true},
+			{x = 1113, y = 5975, w = 268, h = 1},
+			{x = 958, y = 5845, w = 90, h = 1},
+			{x = 1078, y = 5854, w = 1, h = 117, nonslidable = true},
+			{x = 534, y = 5992, w = 245, h = 1, topOnly = true},
+			{x = 107, y = 6171, w = 1387, h = 1},
+			{x = 105, y = 5974, w = 103, h = 1, topOnly = true},
+			{x = 70, y = 4613, w = 1, h = 1557},
+			{x = 339, y = 5405, w = 1, h = 207},
+			{x = 502, y = 5337, w = 1416, h = 1},
+		},
+		entities = {},
+		foregroundImg = _LEVEL_WT_FG,
+		foregroundScale = 0.5,
+		backgroundImg = _LEVEL_BG,
+		backgroundScale = 0.5 * 0.81
+	}
+
 	_SETTINGS = Settings()
 
 	-- Game logic
@@ -133,11 +169,11 @@ function love.load()
 	_GAME = Game()
 
 	-- Debug
-	_HITBOXES = true
+	_HITBOXES = true and not _PRODUCTION
 end
 
 function love.update(dt)
-	if love.keyboard.isDown("space") then
+	if love.keyboard.isDown("space") and not _PRODUCTION then
 		dt = dt / 5
 	end
 	_MENU:update(dt)
@@ -146,7 +182,7 @@ end
 
 function love.keypressed(key)
 	_GAME:keypressed(key)
-	if key == "h" then
+	if key == "h" and not _PRODUCTION then
 		_HITBOXES = not _HITBOXES
 	end
 end

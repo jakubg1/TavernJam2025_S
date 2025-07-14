@@ -84,6 +84,8 @@ function Level:init()
     self.startTime = 0
     self.deathTime = 0
     self.gameOverTime = nil
+
+    self.groundBuilderClipboard = {}
 end
 
 function Level:update(dt)
@@ -126,7 +128,7 @@ function Level:updateCutscene()
     local w, h = love.graphics.getDimensions()
     if self.cameraX == self.CAMERA_X_MAX - w / 2 and not self.cutsceneLaunched then
         self.cutsceneLaunched = true
-        _GAME.cutscene:startCutscene(self.endLevelCutscene)
+        --_GAME.cutscene:startCutscene(self.endLevelCutscene)
     end
 end
 
@@ -168,6 +170,33 @@ function Level:keyreleased(key)
     self.player:keyreleased(key)
 end
 
+function Level:mousepressed(x, y, button)
+    if not _HITBOXES then
+        return
+    end
+    if button == 1 then
+        local w, h = love.graphics.getDimensions()
+        local ox = -self.cameraX + w / 2
+        local oy = -self.cameraY + h / 2
+        table.insert(self.groundBuilderClipboard, x - ox)
+        table.insert(self.groundBuilderClipboard, y - oy)
+    elseif button == 2 then
+        if #self.groundBuilderClipboard >= 2 then
+            table.remove(self.groundBuilderClipboard)
+            table.remove(self.groundBuilderClipboard)
+        end
+    elseif button == 3 then
+        local s = ""
+        local gbc = self.groundBuilderClipboard
+        local n = math.floor(#gbc / 4)
+        for i = 0, n - 1 do
+            local x1, y1, x2, y2 = gbc[i * 4 + 1], gbc[i * 4 + 2], gbc[i * 4 + 3], gbc[i * 4 + 4]
+            s = s .. string.format("\n{x = %.0f, y = %.0f, w = %.0f, h = %.0f},", math.min(x1, x2), math.min(y1, y2), math.abs(x2 - x1), math.abs(y2 - y1))
+        end
+        love.system.setClipboardText(s)
+    end
+end
+
 function Level:destroyEntities()
     self.player:destroy()
     for i, enemy in ipairs(self.enemies) do
@@ -178,6 +207,7 @@ end
 function Level:draw()
     self:drawBackground()
     self:drawEntities()
+    self:drawGroundBuilder()
     self:drawCircleVignette()
     self:drawHUD()
     self:drawGameOver()
@@ -278,6 +308,31 @@ function Level:drawDebug()
     y = y + self.cameraY - h / 2
     love.graphics.setFont(_FONT)
     love.graphics.print(string.format("(%.0f, %.0f)\n(%f, %f)\nhealth: %s", x, y, self.player.x, self.player.y, self.player.health))
+end
+
+function Level:drawGroundBuilder()
+    local w, h = love.graphics.getDimensions()
+    local ox = -self.cameraX + w / 2
+    local oy = -self.cameraY + h / 2
+    local gbc = self.groundBuilderClipboard
+    local n = math.floor(#gbc / 4)
+    for i = 0, n - 1 do
+        local x1, y1, x2, y2 = gbc[i * 4 + 1], gbc[i * 4 + 2], gbc[i * 4 + 3], gbc[i * 4 + 4]
+        love.graphics.setColor(1, 0.5, 0, 0.5)
+        love.graphics.rectangle("fill", x1 + ox, y1 + oy, x2 - x1, y2 - y1)
+        love.graphics.setColor(1, 0.5, 0)
+        love.graphics.rectangle("line", x1 + ox, y1 + oy, x2 - x1, y2 - y1)
+    end
+    if #gbc > n * 4 then
+        local x1, y1 = gbc[n * 4 + 1], gbc[n * 4 + 2]
+        local x2, y2 = love.mouse.getPosition()
+        x2 = x2 - ox
+        y2 = y2 - oy
+        love.graphics.setColor(0.5, 0.25, 0, 0.5)
+        love.graphics.rectangle("fill", x1 + ox, y1 + oy, x2 - x1, y2 - y1)
+        love.graphics.setColor(1, 0.5, 0)
+        love.graphics.rectangle("line", x1 + ox, y1 + oy, x2 - x1, y2 - y1)
+    end
 end
 
 return Level

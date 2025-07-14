@@ -54,6 +54,7 @@ function Entity:update(dt)
     self:updateMovement(dt)
     self:updateDirection()
     self:updateGravity(dt)
+    self:updateWallSlide()
     self:updatePhysics(dt)
     self:updateKnock(dt)
     self:updateInvulnerability(dt)
@@ -97,6 +98,13 @@ end
 ---@param dt number Time delta in seconds.
 function Entity:updateGravity(dt)
     self.speedY = self.speedY + self.GRAVITY * dt
+end
+
+---Pushes the player slightly towards the wall when sliding so that the entity keeps colliding.
+function Entity:updateWallSlide()
+    if self.sliding and self.speedX == 0 then
+        self.speedX = self.direction == "left" and -1 or 1
+    end
 end
 
 ---Updates the entity state to match its physics body, and updates the physics body's speed to match the entity state.

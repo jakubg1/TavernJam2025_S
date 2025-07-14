@@ -49,7 +49,7 @@ function Level:init()
 	self.player = Player(self.data.playerSpawnX, self.data.playerSpawnY)
     self.grounds = {}
     for i, ground in ipairs(self.data.grounds) do
-        self.grounds[i] = Ground(ground.x, ground.y, ground.w, ground.h, ground.topOnly)
+        self.grounds[i] = Ground(ground.x, ground.y, ground.w, ground.h, ground.topOnly, ground.nonslidable)
     end
     self.enemies = {
         --WaterDrop(1400, 1625),

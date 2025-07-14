@@ -25,6 +25,7 @@ function Entity:new(x, y)
     self.accX, self.accY = 0, 0
     self.direction = "right"
     self.ground = nil
+    self.sliding = false -- Whether the entity is sliding against a wall
     self.health = self.MAX_HEALTH
     self.dead = false
     self.knockTime = nil -- Makes the player ignore max speed and removes player control.
@@ -40,7 +41,7 @@ function Entity:new(x, y)
     end
 
     -- Appearance
-    ---@alias SpriteState {state: string, flipState: string?, start: integer, frames: integer, framerate: number, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
+    ---@alias SpriteState {state: string, flipState: string?, start: integer, frames: integer, framerate: number, offsetX: number?, onFinish: string?, delOnFinish: boolean?, reverse: boolean?}
     self.state = self.STARTING_STATE
     self.stateFrame = 1
     self.stateTime = 0
@@ -105,6 +106,7 @@ function Entity:updatePhysics(dt)
     local x, y, cols, len = _WORLD:move(self, goalX, goalY, collisionFilter)
     local previousGround = self.ground
     self.ground = nil
+    self.sliding = false
     -- I am keeping the debug prints for now, because there still exists a weird glitch where the player
     -- is pushed out of a top-only platform if they land while moving left/right.
     --print(".")
@@ -116,6 +118,10 @@ function Entity:updatePhysics(dt)
             if not other.topOnly and col.normal.x ~= 0 then
                 -- We're against a wall.
                 self.speedX = 0
+                if not other.nonslidable then
+                    self.speedY = 0
+                    self.sliding = true
+                end
                 --print("- Banged!")
             elseif not other.topOnly or col.normal.y < 0 and (not col.overlaps or previousGround) then
                 -- We're landing on ground.
@@ -321,7 +327,8 @@ function Entity:drawSprite()
     local state = self.direction == "left" and self.state.flipState or self.state.state
     local img = self.SPRITES:getImage(state, frame)
     local flipped = self.direction == "left" and not self.state.noFlip and not self.state.flipState
-    local x = self.x + self.WIDTH / 2 + self.OFFSET_X + (flipped and self.FLIP_AXIS_OFFSET or -self.FLIP_AXIS_OFFSET)
+    local axisOffset = self.FLIP_AXIS_OFFSET + (self.state.offsetX or 0)
+    local x = self.x + self.WIDTH / 2 + self.OFFSET_X + (flipped and axisOffset or -axisOffset)
     local y = self.y + self.HEIGHT / 2 + self.OFFSET_Y
     local scaleX = flipped and -self.SCALE or self.SCALE
     local scaleY = self.SCALE

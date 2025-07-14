@@ -27,6 +27,8 @@ function Player:new(x, y)
         jump = {state = "jump", start = 3, frames = 6, framerate = 15, onFinish = "fall"},
         fall = {state = "fall", start = 1, frames = 2, framerate = 15},
         land = {state = "jump", start = 9, frames = 2, framerate = 15, onFinish = "idle"},
+        slideStart = {state = "walljump", start = 1, frames = 4, framerate = 15, offsetX = 25, onFinish = "slide"},
+        slide = {state = "walljump", start = 5, frames = 2, framerate = 15, offsetX = 25},
         punchLeft = {state = "leftpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
         punchRight = {state = "rightpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
         dropKick = {state = "dropkick", start = 1, frames = 6, framerate = 15, onFinish = "fall"},
@@ -42,7 +44,7 @@ function Player:new(x, y)
     self.JUMP_GRACE_TIME_MAX = 0.1
     self.WALL_JUMP_SPEED_X = 1000
     self.WALL_JUMP_SPEED_Y = -1000
-    self.WALL_JUMP_THRESHOLD = 40
+    self.WALL_JUMP_DIRECTION_HANDICAP_TIME_MAX = 0.1 -- How long should the player automatically be held the opposite direction button so they don't instantly snap to wall again
     self.ATTACK_DELAY = 0.15
     self.ATTACK_RANGE = 80 -- The width of attack hitboxes
     self.DROP_ATTACK_SPEED = -700
@@ -62,6 +64,7 @@ function Player:new(x, y)
     -- State
     self.jumpDelay = nil
     self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
+    self.wallJumpDirectionHandicapTime = nil
     self.lastWallJumpDirection = nil
     self.attackTime = nil
     self.nextPunchRight = false
@@ -73,6 +76,7 @@ function Player:update(dt)
     self:move(dt)
     self:updateJumpDelay(dt)
     self:updateJumpGrace(dt)
+    self:updateWallJumpDirectionHandicapTime(dt)
     self:updateWallJumpLastDirection()
     self:updateAttack(dt)
     self.super.update(self, dt)
@@ -82,6 +86,11 @@ function Player:move(dt)
     -- Calculate the current acceleration.
     local left = love.keyboard.isDown("a", "left") and not self.dead
     local right = love.keyboard.isDown("d", "right") and not self.dead
+    -- Overwrite currently held controls if wall jump handicap is active.
+    if self.wallJumpDirectionHandicapTime then
+        left = self.lastWallJumpDirection == "right"
+        right = self.lastWallJumpDirection == "left"
+    end
     if self.knockTime then
         self.accX = 0
     elseif left and not right then
@@ -114,6 +123,15 @@ function Player:updateJumpGrace(dt)
         self.jumpGraceTime = self.JUMP_GRACE_TIME_MAX
     else
         self.jumpGraceTime = math.max(self.jumpGraceTime - dt, 0)
+    end
+end
+
+function Player:updateWallJumpDirectionHandicapTime(dt)
+    if self.wallJumpDirectionHandicapTime then
+        self.wallJumpDirectionHandicapTime = math.max(self.wallJumpDirectionHandicapTime - dt, 0)
+        if self.wallJumpDirectionHandicapTime == 0 then
+            self.wallJumpDirectionHandicapTime = nil
+        end
     end
 end
 
@@ -159,16 +177,15 @@ function Player:jump()
     if self.ground or self.jumpGraceTime > 0 then
         self.jumpDelay = self.JUMP_DELAY_MAX
         self.jumpGraceTime = 0
-    elseif self.direction ~= self.lastWallJumpDirection then
-        if self.direction == "left" and self:isCloseToWall(-self.WALL_JUMP_THRESHOLD) then
+    elseif self.sliding and self.direction ~= self.lastWallJumpDirection then
+        if self.direction == "left" then
             self.speedX = self.WALL_JUMP_SPEED_X
-            self.speedY = self.WALL_JUMP_SPEED_Y
-            self.lastWallJumpDirection = self.direction
-        elseif self.direction == "right" and self:isCloseToWall(self.WALL_JUMP_THRESHOLD) then
+        elseif self.direction == "right" then
             self.speedX = -self.WALL_JUMP_SPEED_X
-            self.speedY = self.WALL_JUMP_SPEED_Y
-            self.lastWallJumpDirection = self.direction
         end
+        self.speedY = self.WALL_JUMP_SPEED_Y
+        self.lastWallJumpDirection = self.direction
+        self.wallJumpDirectionHandicapTime = self.WALL_JUMP_DIRECTION_HANDICAP_TIME_MAX
     end
 end
 
@@ -201,6 +218,7 @@ function Player:updateState()
     local jumping = (not self.ground and self.speedY < 0) or self.jumpDelay ~= nil
     local falling = not self.ground and self.speedY > 0
     local landing = self.ground ~= nil and not self.jumpDelay
+    local sliding = self.sliding
     local attacking = self.attackTime ~= nil
     local attackRight = self.nextPunchRight
     local dead = self.dead
@@ -210,37 +228,37 @@ function Player:updateState()
         self:setState("fall", falling)
         self:setState("punchLeft", attacking and not attackRight)
         self:setState("punchRight", attacking and attackRight)
-        self:setState("defeat", dead)
     elseif self.state == self.STATES.run then
         self:setState("idle", not moving)
         self:setState("jumpPrep", jumping)
         self:setState("fall", falling)
         self:setState("punchLeft", attacking and not attackRight)
         self:setState("punchRight", attacking and attackRight)
-        self:setState("defeat", dead)
     elseif self.state == self.STATES.jumpPrep then
         self:setState("land", landing)
-        self:setState("defeat", dead)
     elseif self.state == self.STATES.jump then
         self:setState("land", landing)
-        self:setState("defeat", dead)
+        self:setState("slideStart", sliding)
     elseif self.state == self.STATES.fall then
         self:setState("land", landing)
         self:setState("dropKick", attacking)
-        self:setState("defeat", dead)
+        self:setState("slideStart", sliding)
     elseif self.state == self.STATES.land then
         self:setState("run", moving)
-        self:setState("defeat", dead)
+    elseif self.state == self.STATES.slideStart then
+        self:setState("idle", landing)
+        self:setState("fall", not sliding)
+    elseif self.state == self.STATES.slide then
+        self:setState("idle", landing)
+        self:setState("fall", not sliding)
     elseif self.state == self.STATES.punchLeft then
         self:setState("punchRight", attacking and attackRight)
-        self:setState("defeat", dead)
     elseif self.state == self.STATES.punchRight then
         self:setState("punchLeft", attacking and not attackRight)
-        self:setState("defeat", dead)
     elseif self.state == self.STATES.dropKick then
         self:setState("land", landing)
-        self:setState("defeat", dead)
     end
+    self:setState("defeat", dead)
 end
 
 ---Executed when key is pressed.

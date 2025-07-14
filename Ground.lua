@@ -1,13 +1,14 @@
 local Class = require("com.class")
 
 ---@class Ground : Class
----@overload fun(x, y, width, height, topOnly): Ground
+---@overload fun(x, y, width, height, topOnly, nonslidable): Ground
 local Ground = Class:derive("Ground")
 
-function Ground:new(x, y, width, height, topOnly)
+function Ground:new(x, y, width, height, topOnly, nonslidable)
     self.x, self.y = x, y
     self.width, self.height = width, height
     self.topOnly = topOnly
+    self.nonslidable = nonslidable
     self.isGround = true
 
     _WORLD:add(self, x, y, width, height)

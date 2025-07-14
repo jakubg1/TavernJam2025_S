@@ -165,6 +165,10 @@ function Level:drawCircleVignette()
     end
     local w, h = love.graphics.getDimensions()
     local x, y = self.player.x + self.player.WIDTH / 2 - self.cameraX + w / 2, self.player.y + self.player.HEIGHT / 2 - self.cameraY + h / 2
+    if self.deathTime >= self.DEATH_DELAY then
+        x = x + 60
+        y = y + 30
+    end
     love.graphics.stencil(function()
         love.graphics.setColor(1, 1, 1)
         love.graphics.circle("fill", x, y, radius)

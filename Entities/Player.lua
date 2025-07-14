@@ -32,8 +32,8 @@ function Player:new(x, y)
         punchLeft = {state = "leftpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
         punchRight = {state = "rightpunch", start = 1, frames = 7, framerate = 30, onFinish = "idle"},
         dropKick = {state = "dropkick", start = 1, frames = 6, framerate = 15, onFinish = "fall"},
-        defeat = {state = "defeat", start = 1, frames = 1, framerate = 15, onFinish = "dead"},
-        dead = {state = "defeat", start = 1, frames = 1, framerate = 15}
+        defeat = {state = "ko", start = 1, frames = 8, framerate = 10, onFinish = "dead"},
+        dead = {state = "ko", start = 8, frames = 1, framerate = 15}
     }
     self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _SPRITES.player
@@ -258,7 +258,9 @@ function Player:updateState()
     elseif self.state == self.STATES.dropKick then
         self:setState("land", landing)
     end
-    self:setState("defeat", dead)
+    if self.state ~= self.STATES.dead then
+        self:setState("defeat", dead)
+    end
 end
 
 ---Executed when key is pressed.

@@ -8,7 +8,7 @@ local DialogText = require("Cutscene")
 function love.load()
 	-- Resources
 	local spriteData = {
-		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 6, fall = 2, walljump = 6, defeat = 1}},
+		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 6, fall = 2, walljump = 6, ko = 8}},
 		cloudGirl = {directory = "assets/Cloud_Girl/", states = {idle = 9}},
 		jumpyCloudy = {directory = "assets/Jumpy_Cloudy/", states = {idle = 5, rise = 16, idle2 = 4, attack = 35}},
 		fishBoy = {directory = "assets/Fish_Boy/", states = {attack = 21, idle = 10}},
@@ -100,7 +100,7 @@ function love.load()
 
 	-- Game logic
 	_WORLD = bump.newWorld()
-	_LEVEL = Level(level2Data)
+	_LEVEL = Level(levelData)
 	_CUTSCENE = DialogText()
 
 	-- Debug

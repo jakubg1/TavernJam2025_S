@@ -7,7 +7,7 @@ local JumpyCloudy = Entity:derive("JumpyCloudy")
 ---Constructs the JumpyCloudy.
 function JumpyCloudy:new(x, y)
     -- Parameters
-    self.WIDTH, self.HEIGHT = 100, 160
+    self.WIDTH, self.HEIGHT = 100, 120
     self.SCALE = 0.3125
     self.OFFSET_X, self.OFFSET_Y = 0, -60
     self.FLIP_AXIS_OFFSET = -45

@@ -9,18 +9,27 @@ function NPC:new(x, y, name)
     -- Parameters
     self.WIDTH, self.HEIGHT = 80, 160
     self.SCALE = 0.35
-    self.OFFSET_X, self.OFFSET_Y = 0, -25
-    self.FLIP_AXIS_OFFSET = 0
     self.MAX_SPEED = 0
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    ---@type table<string, SpriteState>
-    self.STATES = {
-        idle = {state = "idleright", flipState = "idleleft", start = 1, frames = 5, framerate = 10}
-    }
-    self.STARTING_STATE = self.STATES.idle
     self.SPRITES = _SPRITES["npc" .. name]
+    if self.SPRITES.states.idleleft then
+        self.OFFSET_X, self.OFFSET_Y = 0, -25
+        self.FLIP_AXIS_OFFSET = 0
+        ---@type table<string, SpriteState>
+        self.STATES = {
+            idle = {state = "idleright", flipState = "idleleft", start = 1, frames = 5, framerate = 10}
+        }
+    else
+        self.OFFSET_X, self.OFFSET_Y = 0, -75
+        self.FLIP_AXIS_OFFSET = -60
+        ---@type table<string, SpriteState>
+        self.STATES = {
+            idle = {state = "idle", start = 1, frames = 5, framerate = 10}
+        }
+    end
+    self.STARTING_STATE = self.STATES.idle
 
     -- NPC exclusive parameters
     self.PLAYER_DETECTION_RANGE = 800

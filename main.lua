@@ -21,6 +21,11 @@ function love.load()
 		npcHoney = {directory = "assets/Honey/", states = {idleleft = 5, idleright = 5}},
 		npcJeremy = {directory = "assets/Jeremy/", states = {idleleft = 5, idleright = 5}},
 		npcMila = {directory = "assets/Mila/", states = {idleleft = 5, idleright = 5}},
+		npcCrystal = {directory = "assets/Crystal/", states = {idle = 5}},
+		npcLaeyna = {directory = "assets/Laeyna/", states = {idle = 5}},
+		npcSterren = {directory = "assets/Sterren/", states = {idle = 5}},
+		npcTiffania = {directory = "assets/Tiffania/", states = {idle = 5}},
+		npcWaiter = {directory = "assets/Waiter/", states = {idle = 5}},
 	}
 	---@type table<string, Spritesheet>
 	_SPRITES = {}
@@ -32,6 +37,15 @@ function love.load()
 	_LEVEL_FG = love.graphics.newImage("assets/Level_Picnic/foreground.png")
 	_LEVEL_SKY = love.graphics.newImage("assets/Level_Picnic/sky.png")
 	_LEVEL2_FG = love.graphics.newImage("assets/Level_2/foreground.png")
+
+	_HEARTS = {}
+	for i = 0, 4 do
+		_HEARTS[i] = love.graphics.newImage("assets/HUD/heart_" .. i .. ".png")
+	end
+	_LIVES = {}
+	for i = 1, 10 do
+		_LIVES[i] = love.graphics.newImage("assets/HUD/lives_" .. i .. ".png")
+	end
 
 	_FONT = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
 	_WHITE_SHADER = love.graphics.newShader("assets/whiten.glsl")
@@ -90,7 +104,9 @@ function love.load()
 			{type = "NPC", x = 500, y = 125, name = "Mila"},
 			{type = "NPC", x = 600, y = 125, name = "Jeremy"},
 			{type = "NPC", x = 700, y = 125, name = "Honey"},
-			{type = "NPC", x = 800, y = 125, name = "Clarissa"}
+			{type = "NPC", x = 800, y = 125, name = "Clarissa"},
+			{type = "NPC", x = 900, y = 125, name = "Crystal"},
+			{type = "NPC", x = 1000, y = 125, name = "Waiter"}
 		},
 		foregroundImg = _LEVEL2_FG,
 		foregroundScale = 0.5,
@@ -100,8 +116,9 @@ function love.load()
 
 	-- Game logic
 	_WORLD = bump.newWorld()
-	_LEVEL = Level(levelData)
+	_LEVEL = Level(level2Data)
 	_CUTSCENE = DialogText()
+	_LifeCount = 3
 
 	-- Debug
 	_HITBOXES = true

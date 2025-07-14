@@ -15,7 +15,7 @@ function Player:new(x, y)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    self.MAX_HEALTH = 8
+    self.MAX_HEALTH = 12
     self.KNOCK_X, self.KNOCK_Y = 600, 600
     self.KNOCK_TIME_MAX = 10.3
     self.INVUL_TIME_MAX = 0.5

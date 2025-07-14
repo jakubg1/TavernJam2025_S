@@ -2,8 +2,8 @@ _Utils = require("com.utils")
 
 local bump = require("com.bump")
 local Spritesheet = require("Spritesheet")
-local Level = require("Level")
-local DialogText = require("Cutscene")
+local MainMenu = require("MainMenu")
+local Game = require("Game")
 
 function love.load()
 	-- Resources
@@ -26,12 +26,16 @@ function love.load()
 		npcSterren = {directory = "assets/Sterren/", states = {idle = 5}},
 		npcTiffania = {directory = "assets/Tiffania/", states = {idle = 5}},
 		npcWaiter = {directory = "assets/Waiter/", states = {idle = 5}},
+
+		menuSelect = {directory = "assets/Menu/", states = {select = 10}}
 	}
 	---@type table<string, Spritesheet>
 	_SPRITES = {}
 	for name, data in pairs(spriteData) do
 		_SPRITES[name] = Spritesheet(data)
 	end
+
+	_MENU_BG = love.graphics.newImage("assets/Menu/title.png")
 
 	_LEVEL_BG = love.graphics.newImage("assets/Level_Picnic/background.png")
 	_LEVEL_FG = love.graphics.newImage("assets/Level_Picnic/foreground.png")
@@ -53,7 +57,7 @@ function love.load()
 	_DIALOG = love.graphics.newImage("assets/dialog.png")
 	_DIALOG_ARROW = love.graphics.newImage("assets/dialog_arrow.png")
 
-	local levelData = {
+	_LEVEL_DATA = {
 		playerSpawnX = 100,
 		playerSpawnY = 1625,
 		grounds = {
@@ -80,7 +84,7 @@ function love.load()
 		backgroundScale = 0.5 * 0.81
 	}
 
-	local level2Data = {
+	_LEVEL_2_DATA = {
 		playerSpawnX = 100,
 		playerSpawnY = 125,
 		grounds = {
@@ -116,9 +120,8 @@ function love.load()
 
 	-- Game logic
 	_WORLD = bump.newWorld()
-	_LEVEL = Level(level2Data)
-	_CUTSCENE = DialogText()
-	_LifeCount = 3
+	_MENU = MainMenu()
+	_GAME = Game()
 
 	-- Debug
 	_HITBOXES = true
@@ -128,36 +131,27 @@ function love.update(dt)
 	if love.keyboard.isDown("space") then
 		dt = dt / 5
 	end
-	if not _CUTSCENE:isActive() then
-		_LEVEL:update(dt)
-	end
-	_CUTSCENE:update(dt)
+	_MENU:update(dt)
+	_GAME:update(dt)
 end
 
 function love.keypressed(key)
-	if _CUTSCENE:isActive() then
-		_CUTSCENE:keypressed(key)
-	else
-		_LEVEL:keypressed(key)
-	end
+	_GAME:keypressed(key)
 	if key == "h" then
 		_HITBOXES = not _HITBOXES
 	end
 end
 
 function love.keyreleased(key)
-	if not _CUTSCENE:isActive() then
-		_LEVEL:keyreleased(key)
-	end
+	_GAME:keyreleased(key)
 end
 
 function love.mousepressed(x, y, button)
-	if _CUTSCENE:isActive() then
-		_CUTSCENE:mousepressed(x, y, button)
-	end
+	_MENU:mousepressed(x, y, button)
+	_GAME:mousepressed(x, y, button)
 end
 
 function love.draw()
-	_LEVEL:draw()
-	_CUTSCENE:draw()
+	_MENU:draw()
+	_GAME:draw()
 end

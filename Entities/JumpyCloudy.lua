@@ -51,7 +51,7 @@ function JumpyCloudy:update(dt)
 end
 
 function JumpyCloudy:updateAttack()
-    local player = _LEVEL.player
+    local player = _GAME.level.player
     if self.state ~= self.STATES.idle then
         if self:collidesWith(player, "main", "main") then
             player:hurt(self.direction)
@@ -60,7 +60,7 @@ function JumpyCloudy:updateAttack()
 end
 
 function JumpyCloudy:updateDirection()
-    self.direction = self.x - _LEVEL.player.x > 0 and "left" or "right"
+    self.direction = self.x - _GAME.level.player.x > 0 and "left" or "right"
 end
 
 function JumpyCloudy:updateState()

@@ -126,7 +126,7 @@ function Level:updateCutscene()
     local w, h = love.graphics.getDimensions()
     if self.cameraX == self.CAMERA_X_MAX - w / 2 and not self.cutsceneLaunched then
         self.cutsceneLaunched = true
-        _CUTSCENE:startCutscene(self.endLevelCutscene)
+        _GAME.cutscene:startCutscene(self.endLevelCutscene)
     end
 end
 
@@ -143,8 +143,8 @@ function Level:updateStartDeath(dt)
     if self.player.dead then
         self.deathTime = self.deathTime + dt
         if self.deathTime >= self.DEATH_DELAY + self.DEATH_TIME + self.DEATH_BLACKOUT_TIME then
-            _LifeCount = _LifeCount - 1
-            if _LifeCount >= 1 then
+            _GAME.lives = _GAME.lives - 1
+            if _GAME.lives >= 1 then
                 self:init()
             else
                 self.gameOverTime = 0
@@ -241,7 +241,7 @@ function Level:drawHUD()
         return
     end
     love.graphics.setColor(1, 1, 1, alpha)
-    love.graphics.draw(_LIVES[math.max(_LifeCount, 1)], 0, 0, 0, 0.2)
+    love.graphics.draw(_LIVES[math.max(_GAME.lives, 1)], 0, 0, 0, 0.2)
     local flash = self.healthChangeTime and self.healthChangeTime % 0.25 >= 0.125
     if flash then
         love.graphics.setShader(_WHITE_SHADER)

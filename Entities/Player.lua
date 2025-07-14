@@ -157,7 +157,7 @@ function Player:updateAttack(dt)
         end
         local enemyFound = false
         -- Hurt at most one enemy.
-        for i, enemy in ipairs(_LEVEL.enemies) do
+        for i, enemy in ipairs(_GAME.level.enemies) do
             if self:collidesWith(enemy, attackHitbox, "main") then
                 enemy:hurt(self.direction, dropKick and 2 or 1)
                 enemyFound = true

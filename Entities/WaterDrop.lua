@@ -70,8 +70,8 @@ function WaterDrop:move(dt)
         right = self.targetDirection == "right"
     elseif self.state == self.STATES.move then
         local proximity = self:getProximityToPlayer()
-        left = proximity > 40 and self.x > _LEVEL.player.x
-        right = proximity > 40 and self.x < _LEVEL.player.x
+        left = proximity > 40 and self.x > _GAME.level.player.x
+        right = proximity > 40 and self.x < _GAME.level.player.x
     end
     if self.knockTime then
         self.accX = 0
@@ -86,7 +86,7 @@ function WaterDrop:move(dt)
 end
 
 function WaterDrop:updateAttack()
-    local player = _LEVEL.player
+    local player = _GAME.level.player
     if self.state == self.STATES.move then
         if self:collidesWith(player, "main", "main") then
             player:hurt(player.x < self.x and "left" or "right")

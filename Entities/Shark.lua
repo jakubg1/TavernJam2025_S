@@ -64,7 +64,7 @@ function Shark:move(dt)
 end
 
 function Shark:updateAttack()
-    local player = _LEVEL.player
+    local player = _GAME.level.player
     if self.state == self.STATES.fly then
         if self:collidesWith(player, "main", "main") then
             player:hurt(self.direction)
@@ -74,7 +74,7 @@ end
 
 function Shark:updateDirection()
     if self.state ~= self.STATES.fly then
-        self.direction = self.x - _LEVEL.player.x > 0 and "left" or "right"
+        self.direction = self.x - _GAME.level.player.x > 0 and "left" or "right"
     end
 end
 

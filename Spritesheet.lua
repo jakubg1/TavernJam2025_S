@@ -18,7 +18,7 @@ function Spritesheet:new(data)
 end
 
 function Spritesheet:getImage(state, frame)
-    return self.states[state][frame]
+    return assert(self.states[state][frame], string.format("Tried to obtain an illegal frame: %s %s", state, frame))
 end
 
 return Spritesheet

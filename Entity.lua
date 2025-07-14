@@ -274,7 +274,7 @@ end
 ---Returns the horizontal distance to the player.
 ---@return number
 function Entity:getProximityToPlayer()
-    return math.abs(self.x - _LEVEL.player.x)
+    return math.abs(self.x - _GAME.level.player.x)
 end
 
 ---Returns `true` if in the provided distance there is a wall (non-top-only ground).

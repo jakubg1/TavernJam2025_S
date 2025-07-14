@@ -4,6 +4,7 @@ local bump = require("com.bump")
 local Spritesheet = require("Spritesheet")
 local MainMenu = require("MainMenu")
 local Game = require("Game")
+local Settings = require("Settings")
 
 function love.load()
 	-- Resources
@@ -27,7 +28,8 @@ function love.load()
 		npcTiffania = {directory = "assets/Tiffania/", states = {idle = 5}},
 		npcWaiter = {directory = "assets/Waiter/", states = {idle = 5}},
 
-		menuSelect = {directory = "assets/Menu/", states = {select = 10}}
+		menuSelect = {directory = "assets/Menu/", states = {select = 10}},
+		menuWindow = {directory = "assets/Menu/Window/", states = {idle = 28, open = 12}}
 	}
 	---@type table<string, Spritesheet>
 	_SPRITES = {}
@@ -36,6 +38,10 @@ function love.load()
 	end
 
 	_MENU_BG = love.graphics.newImage("assets/Menu/title.png")
+	_MENU_SLIDER = love.graphics.newImage("assets/Menu/slider.png")
+	_MENU_SLIDER_NOTCH = love.graphics.newImage("assets/Menu/slider_notch.png")
+	_MENU_CHECKBOX = love.graphics.newImage("assets/Menu/checkbox.png")
+	_MENU_CHECKBOX_SELECTED = love.graphics.newImage("assets/Menu/checkbox_selected.png")
 
 	_LEVEL_BG = love.graphics.newImage("assets/Level_Picnic/background.png")
 	_LEVEL_FG = love.graphics.newImage("assets/Level_Picnic/foreground.png")
@@ -52,6 +58,7 @@ function love.load()
 	end
 
 	_FONT = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
+	_FONT_S = love.graphics.newFont("assets/Lambda-Regular.ttf", 24)
 	_WHITE_SHADER = love.graphics.newShader("assets/whiten.glsl")
 
 	_DIALOG = love.graphics.newImage("assets/dialog.png")
@@ -117,6 +124,8 @@ function love.load()
 		backgroundImg = _LEVEL_BG,
 		backgroundScale = 0.5 * 0.81
 	}
+
+	_SETTINGS = Settings()
 
 	-- Game logic
 	_WORLD = bump.newWorld()

@@ -14,6 +14,10 @@ function Ground:new(x, y, width, height, topOnly, nonslidable)
     _WORLD:add(self, x, y, width, height)
 end
 
+function Ground:destroy()
+    _WORLD:remove(self)
+end
+
 function Ground:draw()
     --self:drawRect()
     self:drawHitbox()

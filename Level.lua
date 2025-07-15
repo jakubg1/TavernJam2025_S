@@ -39,9 +39,7 @@ function Level:new(data)
 end
 
 function Level:init()
-    if self.enemies then
-        self:destroyEntities()
-    end
+    self:unload()
 
 	self.player = Player(self.data.playerSpawnX, self.data.playerSpawnY)
     self.grounds = {}
@@ -199,10 +197,34 @@ function Level:mousepressed(x, y, button)
     end
 end
 
-function Level:destroyEntities()
+function Level:unload()
+    self:destroyPlayer()
+    self:destroyEntities()
+    self:destroyGrounds()
+end
+
+function Level:destroyPlayer()
+    if not self.player then
+        return
+    end
     self.player:destroy()
+end
+
+function Level:destroyEntities()
+    if not self.enemies then
+        return
+    end
     for i, enemy in ipairs(self.enemies) do
         enemy:destroy()
+    end
+end
+
+function Level:destroyGrounds()
+    if not self.grounds then
+        return
+    end
+    for i, ground in ipairs(self.grounds) do
+        ground:destroy()
     end
 end
 

@@ -24,7 +24,9 @@ function Game:update(dt)
 end
 
 function Game:startLevel(data)
-    self.lives = 3
+    if self.level then
+        self.level:unload()
+    end
     self.level = Level(data)
 end
 

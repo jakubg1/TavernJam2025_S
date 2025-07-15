@@ -9,6 +9,7 @@ function NPC:new(x, y, name)
     -- Parameters
     self.WIDTH, self.HEIGHT = 80, 160
     self.SCALE = 0.35
+    self.IS_ENEMY = false
     self.MAX_SPEED = 0
     self.MAX_ACC = 4000
     self.DRAG = 2000

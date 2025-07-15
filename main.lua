@@ -4,6 +4,7 @@ local bump = require("com.bump")
 local Spritesheet = require("Spritesheet")
 local MainMenu = require("MainMenu")
 local Game = require("Game")
+local Credits = require("Credits")
 local Settings = require("Settings")
 local Jukebox = require("Jukebox")
 
@@ -98,8 +99,13 @@ function love.load()
 		music = "picnic",
 		cutscenes = {
 			endLevel = {
-				{text = {{1, 1, 0}, "Congratulations! ", {1, 1, 1}, "You've beaten the first level!"}, img = _SPRITES.player.states.jump[5], side = "left"},
-				{text = {{1, 1, 1}, "Now you can go to the second and final one for now..."}, img = _SPRITES.player.states.jump[5], side = "left"}
+				{text = {{1, 1, 1}, "Hold up hero, where do you think you're going?"}, img = _SPRITES.npcTiffania.states.idle[1], side = "right"},
+				{text = {{1, 1, 1}, "I've gotta find the ones responsible for all these monsters!"}, img = _SPRITES.player.states.idle[1], side = "left"},
+				{text = {{1, 1, 1}, "Have you cleared the area?"}, img = _SPRITES.npcWaiter.states.idle[1], side = "right"},
+				-- condition
+				{text = {{1, 1, 1}, "Of course!"}, img = _SPRITES.player.states.idle[1], side = "left"},
+				{text = {{1, 1, 1}, "Hmm... there was a girl with blue hair that ran by me. If you go now, maybe you can catch her!"}, img = _SPRITES.npcTiffania.states.idle[1], side = "right"},
+				{text = {{1, 1, 1}, "Girl with blue hair? Alright, I'll keep a look out for her!"}, img = _SPRITES.player.states.idle[1], side = "left"},
 			}
 		}
 	}
@@ -190,6 +196,7 @@ function love.load()
 	_WORLD = bump.newWorld()
 	_MENU = MainMenu()
 	_GAME = Game()
+	_CREDITS = Credits()
 
 	-- More resources (this code is so shitty lol)
 	-- As you can tell, I'm absolutely not proud of the code quality, but hey, it's a nice experiment and I NEED TO HURRY UP AAAAA
@@ -212,6 +219,7 @@ function love.update(dt)
 	end
 	_MENU:update(dt)
 	_GAME:update(dt)
+	_CREDITS:update(dt)
 end
 
 function love.keypressed(key)
@@ -228,9 +236,11 @@ end
 function love.mousepressed(x, y, button)
 	_MENU:mousepressed(x, y, button)
 	_GAME:mousepressed(x, y, button)
+	_CREDITS:mousepressed(x, y, button)
 end
 
 function love.draw()
 	_MENU:draw()
 	_GAME:draw()
+	_CREDITS:draw()
 end

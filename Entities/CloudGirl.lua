@@ -11,6 +11,7 @@ function CloudGirl:new(x, y)
     self.SCALE = 0.25
     self.OFFSET_X, self.OFFSET_Y = 0, 0
     self.FLIP_AXIS_OFFSET = -50
+    self.IS_ENEMY = true
     self.MAX_SPEED = 700
     self.MAX_ACC = 4000
     self.DRAG = 2000

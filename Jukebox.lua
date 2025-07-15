@@ -13,6 +13,12 @@ function Jukebox:new()
 	}
 end
 
+function Jukebox:updateVolume()
+    for name, music in pairs(self.MUSIC) do
+        music:setVolume(_SETTINGS.musicVolume)
+    end
+end
+
 function Jukebox:stop()
     for name, music in pairs(self.MUSIC) do
         music:stop()

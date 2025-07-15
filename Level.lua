@@ -46,7 +46,7 @@ function Level:init()
     for i, ground in ipairs(self.data.grounds) do
         self.grounds[i] = Ground(ground.x, ground.y, ground.w, ground.h, ground.topOnly, ground.nonslidable)
     end
-    self.enemies = {
+    self.entities = {
         --WaterDrop(1400, 1625),
         --WaterDrop(1300, 1625),
         --WaterGirl(900, 1625),
@@ -58,13 +58,13 @@ function Level:init()
     }
     for i, entity in ipairs(self.data.entities) do
         if entity.type == "WaterDrop" then
-            self.enemies[i] = WaterDrop(entity.x, entity.y)
+            self.entities[i] = WaterDrop(entity.x, entity.y)
         elseif entity.type == "WaterGirl" then
-            self.enemies[i] = WaterGirl(entity.x, entity.y)
+            self.entities[i] = WaterGirl(entity.x, entity.y)
         elseif entity.type == "JumpyCloudy" then
-            self.enemies[i] = JumpyCloudy(entity.x, entity.y)
+            self.entities[i] = JumpyCloudy(entity.x, entity.y)
         elseif entity.type == "NPC" then
-            self.enemies[i] = NPC(entity.x, entity.y, entity.name)
+            self.entities[i] = NPC(entity.x, entity.y, entity.name)
         end
     end
 
@@ -97,10 +97,10 @@ end
 
 function Level:updateEntities(dt)
     self.player:update(dt)
-    for i, enemy in ipairs(self.enemies) do
-        enemy:update(dt)
+    for i, entity in ipairs(self.entities) do
+        entity:update(dt)
     end
-    _Utils.removeDeadObjects(self.enemies)
+    _Utils.removeDeadObjects(self.entities)
 end
 
 function Level:updateCamera()
@@ -153,6 +153,11 @@ function Level:updateStartDeath(dt)
             end
         end
     end
+    -- hardcoded: level 2 and ceiling - game win
+    if self.player.y < 50 and self.data == _LEVEL_WT_DATA then
+        _GAME:unload()
+        _CREDITS:start()
+    end
 end
 
 function Level:updateGameOver(dt)
@@ -197,6 +202,15 @@ function Level:mousepressed(x, y, button)
     end
 end
 
+function Level:hasEnemiesLeft()
+    for i, entity in ipairs(self.entities) do
+        if entity.IS_ENEMY then
+            return true
+        end
+    end
+    return false
+end
+
 function Level:unload()
     self:destroyPlayer()
     self:destroyEntities()
@@ -211,11 +225,11 @@ function Level:destroyPlayer()
 end
 
 function Level:destroyEntities()
-    if not self.enemies then
+    if not self.entities then
         return
     end
-    for i, enemy in ipairs(self.enemies) do
-        enemy:destroy()
+    for i, entity in ipairs(self.entities) do
+        entity:destroy()
     end
 end
 
@@ -256,8 +270,8 @@ function Level:drawEntities()
         ground:draw()
     end
     self.player:draw()
-    for i, enemy in ipairs(self.enemies) do
-        enemy:draw()
+    for i, entity in ipairs(self.entities) do
+        entity:draw()
     end
     love.graphics.pop()
 end

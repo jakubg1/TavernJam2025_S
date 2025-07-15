@@ -30,6 +30,14 @@ function Game:startLevel(data)
     self.level = Level(data)
 end
 
+function Game:unload()
+    if not self.level then
+        return
+    end
+    self.level:unload()
+    self.level = nil
+end
+
 function Game:keypressed(key)
     if not self.level then
         return

@@ -11,6 +11,7 @@ function WaterDrop:new(x, y)
     self.SCALE = 0.3125
     self.OFFSET_X, self.OFFSET_Y = 0, -88
     self.FLIP_AXIS_OFFSET = 0
+    self.IS_ENEMY = true
     self.MAX_SPEED = 150
     self.MAX_ACC = 4000
     self.DRAG = 2000

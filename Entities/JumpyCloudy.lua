@@ -11,6 +11,7 @@ function JumpyCloudy:new(x, y)
     self.SCALE = 0.3125
     self.OFFSET_X, self.OFFSET_Y = 0, -60
     self.FLIP_AXIS_OFFSET = -45
+    self.IS_ENEMY = true
     self.MAX_SPEED = 0
     self.MAX_ACC = 4000
     self.DRAG = 2000

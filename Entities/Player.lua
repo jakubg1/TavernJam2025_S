@@ -11,6 +11,7 @@ function Player:new(x, y)
     self.SCALE = 0.3125
     self.OFFSET_X, self.OFFSET_Y = 0, -35
     self.FLIP_AXIS_OFFSET = 0
+    self.IS_ENEMY = false
     self.MAX_SPEED = 700
     self.MAX_ACC = 4000
     self.DRAG = 2000

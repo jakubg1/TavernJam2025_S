@@ -6,15 +6,15 @@ local MainMenu = Class:derive("MainMenu")
 
 function MainMenu:new()
     self.OPTIONS = {
-        {label = "Start", x = 800, y = 550, w = 250},
-        {label = "Settings", x = 800, y = 620, w = 250},
-        {label = "Quit", x = 800, y = 690, w = 250}
+        {label = "Start", x = 800, y = 550, w = 250, sound = "ui_select"},
+        {label = "Settings", x = 800, y = 620, w = 250, sound = "ui_select"},
+        {label = "Quit", x = 800, y = 690, w = 250, sound = "ui_back"}
     }
     self.SETTINGS_OPTIONS = {
-        {label = "Sound Volume", x = 800, y = 330, w = 135, font = _FONT_S, slider = true},
-        {label = "Music Volume", x = 800, y = 430, w = 135, font = _FONT_S, slider = true},
-        {label = "Full Screen", x = 800, y = 530, w = 150, font = _FONT_S, checkbox = true},
-        {label = "Back", x = 800, y = 630, w = 150}
+        {label = "Sound Volume", x = 800, y = 330, w = 135, font = _FONT_S, slider = true, sound = "ui_select"},
+        {label = "Music Volume", x = 800, y = 430, w = 135, font = _FONT_S, slider = true, sound = "ui_select"},
+        {label = "Full Screen", x = 800, y = 530, w = 150, font = _FONT_S, checkbox = true, sound = "ui_select"},
+        {label = "Back", x = 800, y = 630, w = 150, sound = "ui_back"}
     }
     self.hoveredOption = nil
 
@@ -22,8 +22,13 @@ function MainMenu:new()
     self.settingsTime = nil
     self.SETTINGS_CLOSE_TIME_MAX = 0.6
 
-    self.active = true
+    self.active = false
     self.time = 0
+
+    self.fadeoutTime = nil
+    self.FADEOUT_TIME_MAX = 1.5
+
+    self:start()
 end
 
 function MainMenu:update(dt)
@@ -32,6 +37,7 @@ function MainMenu:update(dt)
     end
     self:updateTime(dt)
     self:updateHover()
+    self:updateFadeout(dt)
 end
 
 function MainMenu:updateTime(dt)
@@ -45,10 +51,11 @@ function MainMenu:updateTime(dt)
 end
 
 function MainMenu:updateHover()
-    self.hoveredOption = nil
-    if self.settingsTime and self.settingsTime < 0.6 then
+    if self.fadeoutTime or self.settingsTime and self.settingsTime < 0.6 then
         return
     end
+    local lastHovered = self.hoveredOption
+    self.hoveredOption = nil
     local x, y = love.mouse.getPosition()
     local options = self.settingsOpen and self.SETTINGS_OPTIONS or self.OPTIONS
     for i, option in ipairs(options) do
@@ -56,6 +63,26 @@ function MainMenu:updateHover()
             self.hoveredOption = i
         end
     end
+    if lastHovered ~= self.hoveredOption then
+        _SOUNDS.ui_hover:stop()
+        _SOUNDS.ui_hover:play()
+    end
+end
+
+function MainMenu:updateFadeout(dt)
+    if not self.fadeoutTime then
+        return
+    end
+    self.fadeoutTime = math.min(self.fadeoutTime + dt, self.FADEOUT_TIME_MAX)
+    if self.fadeoutTime == self.FADEOUT_TIME_MAX then
+        self.active = false
+        _GAME:startLevel(_LEVEL_DATA)
+    end
+end
+
+function MainMenu:start()
+    self.active = true
+    _JUKEBOX:play("title")
 end
 
 function MainMenu:openSettings()
@@ -69,14 +96,18 @@ function MainMenu:closeSettings()
 end
 
 function MainMenu:mousepressed(x, y, button)
-    if not self.active then
+    if not self.active or self.fadeoutTime then
         return
     end
     if button == 1 then
+        local options = self.settingsOpen and self.SETTINGS_OPTIONS or self.OPTIONS
+        if self.hoveredOption then
+            local option = options[self.hoveredOption]
+            _SOUNDS[option.sound]:play()
+        end
         if not self.settingsOpen then
             if self.hoveredOption == 1 then
-                self.active = false
-                _GAME:start()
+                self.fadeoutTime = 0
             elseif self.hoveredOption == 2 then
                 self:openSettings()
             elseif self.hoveredOption == 3 then
@@ -103,6 +134,11 @@ function MainMenu:draw()
     self:drawSettings()
     self:drawOptions(true)
     self:drawSelection()
+    self:drawFadeout()
+
+    love.graphics.setColor(1, 0, 0)
+    self:drawLabel("This game is UNFINISHED AND BROKEN! Yay!", 800, 400)
+    self:drawLabel("We will put a better version here in 24 hours! Stay tuned!", 800, 450)
 end
 
 function MainMenu:drawBackground()
@@ -111,6 +147,9 @@ function MainMenu:drawBackground()
 end
 
 function MainMenu:drawSelection()
+    if self.fadeoutTime then
+        return
+    end
     local options = self.settingsOpen and self.SETTINGS_OPTIONS or self.OPTIONS
     if self.hoveredOption then
         local option = options[self.hoveredOption]
@@ -170,6 +209,16 @@ function MainMenu:drawSettings()
     local alpha = _Utils.interpolate2Clamped(0, 1, 0.8, 1, self.settingsTime)
     love.graphics.setColor(0, 0, 0, alpha)
     self:drawLabel("Settings", 800, 270)
+end
+
+function MainMenu:drawFadeout()
+    if not self.fadeoutTime then
+        return
+    end
+    local alpha = _Utils.interpolate2Clamped(0, 1, 0, self.FADEOUT_TIME_MAX, self.fadeoutTime)
+    local w, h = love.graphics.getDimensions()
+    love.graphics.setColor(0, 0, 0, alpha)
+    love.graphics.rectangle("fill", 0, 0, w, h)
 end
 
 function MainMenu:drawLabel(text, x, y, font)

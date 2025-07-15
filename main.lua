@@ -5,6 +5,7 @@ local Spritesheet = require("Spritesheet")
 local MainMenu = require("MainMenu")
 local Game = require("Game")
 local Settings = require("Settings")
+local Jukebox = require("Jukebox")
 
 function love.load()
 	_PRODUCTION = false
@@ -67,6 +68,8 @@ function love.load()
 	_DIALOG = love.graphics.newImage("assets/dialog.png")
 	_DIALOG_ARROW = love.graphics.newImage("assets/dialog_arrow.png")
 
+	_JUKEBOX = Jukebox()
+
 	_LEVEL_DATA = {
 		playerSpawnX = 100,
 		playerSpawnY = 1625,
@@ -81,17 +84,24 @@ function love.load()
 			{x = 4075, y = 1490, w = 295, h = 1, topOnly = true}
 		},
 		entities = {
-			{type = "JumpyCloudy", x = 1000, y = 1625},
 			{type = "WaterDrop", x = 2900, y = 1625},
 			{type = "WaterDrop", x = 3500, y = 1625},
-			{type = "WaterGirl", x = 5300, y = 1625},
-			{type = "WaterDrop", x = 5900, y = 1625},
-			{type = "WaterGirl", x = 6800, y = 1625}
+			{type = "WaterGirl", x = 4300, y = 1625},
+			{type = "WaterDrop", x = 4900, y = 1625},
+			{type = "NPC", x = 6400, y = 1625, name = "Waiter"},
+			{type = "NPC", x = 6600, y = 1625, name = "Tiffania"}
 		},
 		foregroundImg = _LEVEL_FG,
 		foregroundScale = 0.5,
 		backgroundImg = _LEVEL_BG,
-		backgroundScale = 0.5 * 0.81
+		backgroundScale = 0.5 * 0.81,
+		music = "picnic",
+		cutscenes = {
+			endLevel = {
+				{text = {{1, 1, 0}, "Congratulations! ", {1, 1, 1}, "You've beaten the first level!"}, img = _SPRITES.player.states.jump[5], side = "left"},
+				{text = {{1, 1, 1}, "Now you can go to the second and final one for now..."}, img = _SPRITES.player.states.jump[5], side = "left"}
+			}
+		}
 	}
 
 	_LEVEL_2_DATA = {
@@ -129,36 +139,49 @@ function love.load()
 	}
 
 	_LEVEL_WT_DATA = {
-		playerSpawnX = 100,
-		playerSpawnY = 125,
+		playerSpawnX = 200,
+		playerSpawnY = 3699,
 		grounds = {
-			{x = 0, y = 6940, w = 2000, h = 1},
+			{x = 0, y = 3859, w = 2000, h = 1, nonslidable = true},
 			{x = 0, y = 0, w = 1, h = 7000, nonslidable = true},
-			{x = 2120, y = 0, w = 1, h = 7000, nonslidable = true},
-			{x = 1743, y = 6838, w = 113, h = 1, topOnly = true},
-			{x = 1640, y = 6742, w = 100, h = 1, topOnly = true},
-			{x = 1839, y = 6637, w = 146, h = 1, topOnly = true},
-			{x = 1371, y = 6496, w = 449, h = 1, topOnly = true},
-			{x = 1644, y = 6281, w = 202, h = 1, topOnly = true},
-			{x = 1642, y = 6118, w = 204, h = 1, topOnly = true},
-			{x = 1986, y = 4595, w = 1, h = 1987},
-			{x = 1644, y = 5962, w = 217, h = 1, topOnly = true},
-			{x = 1643, y = 5821, w = 212, h = 1, topOnly = true},
-			{x = 1113, y = 5975, w = 268, h = 1},
-			{x = 958, y = 5845, w = 90, h = 1},
-			{x = 1078, y = 5854, w = 1, h = 117, nonslidable = true},
-			{x = 534, y = 5992, w = 245, h = 1, topOnly = true},
-			{x = 107, y = 6171, w = 1387, h = 1},
-			{x = 105, y = 5974, w = 103, h = 1, topOnly = true},
-			{x = 70, y = 4613, w = 1, h = 1557},
-			{x = 339, y = 5405, w = 1, h = 207},
-			{x = 502, y = 5337, w = 1416, h = 1},
+			{x = 2050, y = 0, w = 1, h = 7000, nonslidable = true},
+			{x = 1743, y = 3757, w = 113, h = 1, topOnly = true},
+			{x = 1640, y = 3661, w = 100, h = 1, topOnly = true},
+			{x = 1839, y = 3556, w = 146, h = 1, topOnly = true},
+			{x = 1371, y = 3415, w = 449, h = 1, topOnly = true},
+			{x = 1644, y = 3200, w = 202, h = 1, topOnly = true},
+			{x = 1642, y = 3037, w = 204, h = 1, topOnly = true},
+			{x = 2007, y = 1014, w = 1, h = 2487},
+			{x = 1644, y = 2881, w = 217, h = 1, topOnly = true},
+			{x = 1643, y = 2740, w = 212, h = 1, topOnly = true},
+			{x = 1113, y = 2894, w = 268, h = 1, nonslidable = true},
+			{x = 958, y = 2764, w = 90, h = 1, nonslidable = true},
+			{x = 1078, y = 2773, w = 1, h = 117, nonslidable = true},
+			{x = 534, y = 2911, w = 245, h = 1, topOnly = true},
+			{x = 107, y = 3090, w = 1387, h = 1},
+			{x = 105, y = 2893, w = 103, h = 1, topOnly = true},
+			{x = 53, y = 0, w = 1, h = 3089},
+			{x = 349, y = 2324, w = 1, h = 207},
+			{x = 502, y = 2256, w = 1416, h = 1, nonslidable = true},
+			{x = 1730, y = 1710, w = 1, h = 365},
+			{x = 1668, y = 1481, w = 1, h = 211},
+			{x = 62, y = 1480, w = 1606, h = 1, nonslidable = true},
+			{x = 218, y = 1209, w = 251, h = 1, topOnly = true},
+			{x = 212, y = 1039, w = 272, h = 1, topOnly = true},
+			{x = 215, y = 849, w = 255, h = 1, topOnly = true},
+			{x = 228, y = 692, w = 264, h = 1, topOnly = true},
+			{x = 592, y = 695, w = 1587, h = 1, topOnly = true},
+			{x = 1542, y = 529, w = 38, h = 1, topOnly = true},
+			{x = 1543, y = 387, w = 38, h = 1, topOnly = true},
+			{x = 1546, y = 215, w = 35, h = 1, topOnly = true},
+			{x = 1673, y = 0, w = 1, h = 689, nonslidable = true},
 		},
 		entities = {},
 		foregroundImg = _LEVEL_WT_FG,
 		foregroundScale = 0.5,
 		backgroundImg = _LEVEL_BG,
-		backgroundScale = 0.5 * 0.81
+		backgroundScale = 0.5 * 0.81,
+		music = "water"
 	}
 
 	_SETTINGS = Settings()
@@ -167,6 +190,17 @@ function love.load()
 	_WORLD = bump.newWorld()
 	_MENU = MainMenu()
 	_GAME = Game()
+
+	-- More resources (this code is so shitty lol)
+	-- As you can tell, I'm absolutely not proud of the code quality, but hey, it's a nice experiment and I NEED TO HURRY UP AAAAA
+	_SOUNDS = {
+		ui_back = love.audio.newSource("assets/Sounds/ui_back.wav", "static"),
+		ui_hover = love.audio.newSource("assets/Sounds/ui_hover.wav", "static"),
+		ui_select = love.audio.newSource("assets/Sounds/ui_select.wav", "static")
+	}
+	for name, sound in pairs(_SOUNDS) do
+		sound:setVolume(_SETTINGS.sfxVolume)
+	end
 
 	-- Debug
 	_HITBOXES = true and not _PRODUCTION

@@ -30,12 +30,6 @@ function Level:new(data)
 
     self.HEALTH_CHANGE_TIME_MAX = 0.5
 
-    self.endLevelCutscene = {
-        {text = {{1, 1, 1}, "You're a ", {1, 1, 0}, "HUMAN", {1, 1, 1}, " now and you gotta fight like one!"}, img = _SPRITES.player.states.idle[1], side = "right"},
-        {text = {{1, 1, 0}, "Congratulations! ", {1, 1, 1}, "You've beaten the first level!"}, img = _SPRITES.player.states.jump[5], side = "left"},
-        {text = {{1, 1, 1}, "Now you can go to"}, img = _SPRITES.player.states.jump[5], side = "left"}
-    }
-
     self.START_TIME = 1
     self.DEATH_DELAY = 2
     self.DEATH_TIME = 1
@@ -86,6 +80,12 @@ function Level:init()
     self.gameOverTime = nil
 
     self.groundBuilderClipboard = {}
+
+    if self.data.music then
+        _JUKEBOX:play(self.data.music)
+    else
+        _JUKEBOX:stop()
+    end
 end
 
 function Level:update(dt)
@@ -128,7 +128,9 @@ function Level:updateCutscene()
     local w, h = love.graphics.getDimensions()
     if self.cameraX == self.CAMERA_X_MAX - w / 2 and not self.cutsceneLaunched then
         self.cutsceneLaunched = true
-        --_GAME.cutscene:startCutscene(self.endLevelCutscene)
+        if self.data.cutscenes and self.data.cutscenes.endLevel then
+            _GAME.cutscene:startCutscene(self.data.cutscenes.endLevel)
+        end
     end
 end
 

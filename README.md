@@ -19,9 +19,10 @@ Mostly physics reference has been taken from there.
 
 This repository contains code and other assets from the following sources:
 
+- **Sprites are courtesy of fs3k! License pending, it's not that important yet.**
+- **Music by @ultralee14, and potentially some NCS music. I'm not sure.**
 - Class implementation from https://github.com/bncastle/love2d-tutorial/blob/Episode4/class.lua (MIT license)
 - JSON decoder/encoder implementation from https://github.com/rxi/json.lua (MIT license)
 - bump.lua from https://github.com/kikito/bump.lua (MIT license)
 - Platformer demo from https://github.com/Jeepzor/Platformer-tutorial (WTFPL license)
-- Sprites are courtesy of fs3k! License pending, it's not that important yet.
 - Lambda font is licensed under the SIL Open Font License, Version 1.1.

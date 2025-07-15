@@ -42,6 +42,10 @@ function Cutscene:updateTransition(dt)
         self.transitionTime = nil
         if self.fadingOut then
             self.cutscene = nil
+            -- first level -> move to second one
+            if _GAME.level.data == _LEVEL_DATA then
+                _GAME:startLevel(_LEVEL_WT_DATA)
+            end
         end
     end
 end

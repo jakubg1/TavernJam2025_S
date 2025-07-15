@@ -23,9 +23,9 @@ function Game:update(dt)
     self.cutscene:update(dt)
 end
 
-function Game:start()
+function Game:startLevel(data)
     self.lives = 3
-    self.level = Level(_LEVEL_WT_DATA)
+    self.level = Level(data)
 end
 
 function Game:keypressed(key)

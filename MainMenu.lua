@@ -135,15 +135,21 @@ function MainMenu:draw()
     self:drawOptions(true)
     self:drawSelection()
     self:drawFadeout()
-
-    love.graphics.setColor(1, 0, 0)
-    self:drawLabel("This game is UNFINISHED AND BROKEN! Yay!", 800, 400)
-    self:drawLabel("We will put a better version here in 24 hours! Stay tuned!", 800, 450)
 end
 
 function MainMenu:drawBackground()
+    local w, h = love.graphics.getDimensions()
+    local sw, sh = _MENU_BG:getDimensions()
+    local scale = math.min(w / sw, h / sh)
+    local x = (w - sw * scale) / 2
+    local y = (h - sh * scale) / 2
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(_MENU_BG)
+    love.graphics.draw(_MENU_BG, x, y, 0, scale)
+    -- Text because the artist didn't include it in the image ..............................
+    love.graphics.setColor(0, 0, 0, 0.5)
+    self:drawLabel("Secret Identity: Let's Fight the Elements!", w / 2 + 5, 100 + 5)
+    love.graphics.setColor(0, 0.5, 0)
+    self:drawLabel("Secret Identity: Let's Fight the Elements!", w / 2, 100)
 end
 
 function MainMenu:drawSelection()
@@ -153,7 +159,7 @@ function MainMenu:drawSelection()
     local options = self.settingsOpen and self.SETTINGS_OPTIONS or self.OPTIONS
     if self.hoveredOption then
         local option = options[self.hoveredOption]
-        if not option.slider then
+        if option and not option.slider then
             local sx = option.x
             local sy = option.y - 10
             local sscale = 0.8
@@ -176,7 +182,14 @@ function MainMenu:drawOptions(settings)
     local options = settings and self.SETTINGS_OPTIONS or self.OPTIONS
     local alpha = settings and _Utils.interpolate2Clamped(0, 1, 0.8, 1, self.settingsTime) or 1
     for i, option in ipairs(options) do
-        love.graphics.setColor(0, 0, 0, alpha)
+        love.graphics.setColor(0, 0, 0, 0.5 * alpha)
+        local shadowOffset = (option.font or _FONT):getHeight() / 10
+        self:drawLabel(option.label, option.x + shadowOffset, option.y + shadowOffset, option.font)
+        if not settings then
+            love.graphics.setColor(1, 1, 1, alpha)
+        else
+            love.graphics.setColor(0, 0, 0, alpha)
+        end
         self:drawLabel(option.label, option.x, option.y, option.font)
         love.graphics.setColor(1, 1, 1, alpha)
         if option.slider then

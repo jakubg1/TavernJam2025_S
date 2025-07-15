@@ -7,9 +7,9 @@ local Shark = Entity:derive("Shark")
 ---Constructs the Shark.
 function Shark:new(x, y, isFemale)
     -- Parameters
-    self.WIDTH, self.HEIGHT = 128, 96
-    self.SCALE = 0.25
-    self.OFFSET_X, self.OFFSET_Y = -30, -60
+    self.WIDTH, self.HEIGHT = 160, 120
+    self.SCALE = 0.3125
+    self.OFFSET_X, self.OFFSET_Y = -37, -75
     self.FLIP_AXIS_OFFSET = 0
     self.IS_ENEMY = true
     self.MAX_SPEED = 700
@@ -68,7 +68,7 @@ function Shark:updateAttack()
     local player = _GAME.level.player
     if self.state == self.STATES.fly then
         if self:collidesWith(player, "main", "main") then
-            player:hurt(self.direction)
+            player:hurt(self.direction, 4, true)
         end
     end
 end

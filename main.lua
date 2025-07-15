@@ -50,7 +50,7 @@ function love.load()
 	_LEVEL_BG = love.graphics.newImage("assets/Level_Picnic/background.png")
 	_LEVEL_FG = love.graphics.newImage("assets/Level_Picnic/foreground.png")
 	_LEVEL_SKY = love.graphics.newImage("assets/Level_Picnic/sky.png")
-	_LEVEL2_FG = love.graphics.newImage("assets/Level_2/foreground.png")
+	--_LEVEL2_FG = love.graphics.newImage("assets/Level_2/foreground.png")
 	_LEVEL_WT_FG = love.graphics.newImage("assets/Level_Water_Tower/foreground.png")
 
 	_HEARTS = {}
@@ -73,9 +73,10 @@ function love.load()
 
 	_LEVEL_DATA = {
 		playerSpawnX = 100,
-		playerSpawnY = 1625,
+		playerSpawnY = 1675,
 		grounds = {
 			{x = 0, y = 1675, w = 20000, h = 1},
+			{x = 0, y = 0, w = 1, h = 7000, nonslidable = true},
 			{x = 2275, y = 1515, w = 75, h = 1, topOnly = true},
 			{x = 2395, y = 1475, w = 105, h = 1, topOnly = true},
 			{x = 2495, y = 1400, w = 165, h = 1, topOnly = true},
@@ -85,12 +86,16 @@ function love.load()
 			{x = 4075, y = 1490, w = 295, h = 1, topOnly = true}
 		},
 		entities = {
-			{type = "WaterDrop", x = 2900, y = 1625},
-			{type = "WaterDrop", x = 3500, y = 1625},
-			{type = "WaterGirl", x = 4300, y = 1625},
-			{type = "WaterDrop", x = 4900, y = 1625},
-			{type = "NPC", x = 6400, y = 1625, name = "Waiter"},
-			{type = "NPC", x = 6600, y = 1625, name = "Tiffania"}
+			{type = "CloudGirl", x = 4500, y = 1025},
+			{type = "JumpyCloudy", x = 3200, y = 1330},
+			{type = "Shark", x = 5000, y = 1675},
+			{type = "WaterDrop", x = 2900, y = 1675},
+			{type = "WaterDrop", x = 3200, y = 1675},
+			{type = "WaterDrop", x = 3500, y = 1675},
+			{type = "WaterGirl", x = 4300, y = 1675},
+			{type = "WaterDrop", x = 4900, y = 1675},
+			{type = "NPC", x = 6400, y = 1675, name = "Waiter"},
+			{type = "NPC", x = 6600, y = 1675, name = "Tiffania"}
 		},
 		foregroundImg = _LEVEL_FG,
 		foregroundScale = 0.5,
@@ -138,7 +143,7 @@ function love.load()
 			{type = "NPC", x = 900, y = 125, name = "Crystal"},
 			{type = "NPC", x = 1000, y = 125, name = "Waiter"}
 		},
-		foregroundImg = _LEVEL2_FG,
+		--foregroundImg = _LEVEL2_FG,
 		foregroundScale = 0.5,
 		backgroundImg = _LEVEL_BG,
 		backgroundScale = 0.5 * 0.81
@@ -146,7 +151,7 @@ function love.load()
 
 	_LEVEL_WT_DATA = {
 		playerSpawnX = 200,
-		playerSpawnY = 3699,
+		playerSpawnY = 3859,
 		grounds = {
 			{x = 0, y = 3859, w = 2000, h = 1, nonslidable = true},
 			{x = 0, y = 0, w = 1, h = 7000, nonslidable = true},
@@ -182,7 +187,16 @@ function love.load()
 			{x = 1546, y = 215, w = 35, h = 1, topOnly = true},
 			{x = 1673, y = 0, w = 1, h = 689, nonslidable = true},
 		},
-		entities = {},
+		entities = {
+			{type = "WaterDrop", x = 1500, y = 3415},
+			{type = "JumpyCloudy", x = 400, y = 3200},
+			{type = "Shark", x = 1500, y = 2250, female = true},
+			{type = "WaterDrop", x = 700, y = 2250},
+			{type = "WaterDrop", x = 800, y = 2250},
+			{type = "WaterDrop", x = 900, y = 2250},
+			{type = "WaterGirl", x = 1200, y = 1470},
+			{type = "WaterGirl", x = 800, y = 1470},
+		},
 		foregroundImg = _LEVEL_WT_FG,
 		foregroundScale = 0.5,
 		backgroundImg = _LEVEL_BG,

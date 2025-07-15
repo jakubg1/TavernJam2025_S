@@ -15,7 +15,7 @@ function FishBoy:new(x, y, isGold)
     self.MAX_SPEED = 700
     self.MAX_ACC = 4000
     self.DRAG = 2000
-    self.GRAVITY = 0
+    self.GRAVITY = 2500
     ---@type table<string, SpriteState>
     self.STATES = {
         idle = {state = "idle", start = 1, frames = 10, framerate = 20},

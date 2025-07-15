@@ -61,7 +61,7 @@ function WaterGirl:updateAttack()
     local player = _GAME.level.player
     if self.state == self.STATES.attack and self.stateFrame >= 5 and self.stateFrame <= 9 then
         if self:collidesWith(player, "main", "main") or self:collidesWith(player, self.direction == "left" and "attackLeft" or "attackRight", "main") then
-            player:hurt(self.direction)
+            player:hurt(self.direction, 2)
         end
     end
 end

@@ -9,9 +9,9 @@ local Player = require("Entities.Player")
 local CloudGirl = require("Entities.CloudGirl")
 local FishBoy = require("Entities.FishBoy")
 local JumpyCloudy = require("Entities.JumpyCloudy")
+local Shark = require("Entities.Shark")
 local WaterDrop = require("Entities.WaterDrop")
 local WaterGirl = require("Entities.WaterGirl")
-local Shark = require("Entities.Shark")
 local NPC = require("Entities.NPC")
 
 function Level:new(data)
@@ -57,12 +57,18 @@ function Level:init()
         --CloudGirl(500, 1300)
     }
     for i, entity in ipairs(self.data.entities) do
-        if entity.type == "WaterDrop" then
+        if entity.type == "CloudGirl" then
+            self.entities[i] = CloudGirl(entity.x, entity.y)
+        elseif entity.type == "FishBoy" then
+            self.entities[i] = FishBoy(entity.x, entity.y, entity.gold)
+        elseif entity.type == "JumpyCloudy" then
+            self.entities[i] = JumpyCloudy(entity.x, entity.y)
+        elseif entity.type == "Shark" then
+            self.entities[i] = Shark(entity.x, entity.y, entity.female)
+        elseif entity.type == "WaterDrop" then
             self.entities[i] = WaterDrop(entity.x, entity.y)
         elseif entity.type == "WaterGirl" then
             self.entities[i] = WaterGirl(entity.x, entity.y)
-        elseif entity.type == "JumpyCloudy" then
-            self.entities[i] = JumpyCloudy(entity.x, entity.y)
         elseif entity.type == "NPC" then
             self.entities[i] = NPC(entity.x, entity.y, entity.name)
         end
@@ -165,6 +171,10 @@ function Level:updateGameOver(dt)
         return
     end
     self.gameOverTime = math.min(self.gameOverTime + dt, self.GAME_OVER_TIME)
+    if self.gameOverTime == self.GAME_OVER_TIME then
+        _GAME:unload()
+        _MENU:start()
+    end
 end
 
 function Level:keypressed(key)

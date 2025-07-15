@@ -19,7 +19,7 @@ function Entity:new(x, y)
     --self.FLIP_AXIS_OFFSET = 0
 
     -- State
-    self.x, self.y = x, y
+    self.x, self.y = x, y - self.HEIGHT
     self.homeX, self.homeY = x, y
     self.speedX, self.speedY = 0, 0
     self.accX, self.accY = 0, 0
@@ -246,12 +246,15 @@ end
 ---Hurts the entity in the specified direction if not invulnerable.
 ---@param direction "left"|"right" The attack direction.
 ---@param damage integer? How many health points should be taken. `1` by default.
-function Entity:hurt(direction, damage)
+---@param noKnockback boolean? If `true`, the damaged entity will not be knocked back.
+function Entity:hurt(direction, damage, noKnockback)
     damage = damage or 1
     if not self:canBeAttacked() or not self.health then
         return
     end
-    self:knock(direction == "left" and -self.KNOCK_X or self.KNOCK_X, -self.KNOCK_Y)
+    if not noKnockback then
+        self:knock(direction == "left" and -self.KNOCK_X or self.KNOCK_X, -self.KNOCK_Y)
+    end
     self:flash()
     self.health = math.max(self.health - damage, 0)
     if self.health == 0 then
@@ -282,6 +285,9 @@ end
 ---Returns the horizontal distance to the player.
 ---@return number
 function Entity:getProximityToPlayer()
+    if math.abs(self.y - _GAME.level.player.y) > 150 then
+        return 10000000
+    end
     return math.abs(self.x - _GAME.level.player.x)
 end
 

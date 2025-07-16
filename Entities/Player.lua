@@ -8,7 +8,7 @@ local Player = Entity:derive("Player")
 function Player:new(x, y)
     -- Parameters
     self.WIDTH, self.HEIGHT = 80, 160
-    self.SCALE = 0.3125
+    self.SCALE = 0.625
     self.OFFSET_X, self.OFFSET_Y = 0, -35
     self.FLIP_AXIS_OFFSET = 0
     self.IS_ENEMY = false

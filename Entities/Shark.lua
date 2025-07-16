@@ -8,7 +8,7 @@ local Shark = Entity:derive("Shark")
 function Shark:new(x, y, isFemale)
     -- Parameters
     self.WIDTH, self.HEIGHT = 160, 120
-    self.SCALE = 0.3125
+    self.SCALE = 0.625
     self.OFFSET_X, self.OFFSET_Y = -37, -75
     self.FLIP_AXIS_OFFSET = 0
     self.IS_ENEMY = true

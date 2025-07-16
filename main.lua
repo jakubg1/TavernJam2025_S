@@ -8,27 +8,29 @@ local Credits = require("Credits")
 local Settings = require("Settings")
 local Jukebox = require("Jukebox")
 
+-- makelove: 12 799 045 B max
+
 function love.load()
-	_PRODUCTION = false
+	_PRODUCTION = true
 
 	-- Resources
 	local spriteData = {
 		player = {directory = "assets/Player/", states = {idle = 6, jump = 10, run = 16, leftpunch = 7, rightpunch = 7, dropkick = 6, fall = 2, walljump = 6, ko = 8}},
 		cloudGirl = {directory = "assets/Cloud_Girl/", states = {idle = 9}},
 		jumpyCloudy = {directory = "assets/Jumpy_Cloudy/", states = {idle = 5, rise = 16, idle2 = 4, attack = 35}},
-		fishBoy = {directory = "assets/Fish_Boy/", states = {attack = 21, idle = 10}},
-		fishBoyGold = {directory = "assets/Fish_Boy_Gold/", states = {attack = 21, idle = 10}},
+		--fishBoy = {directory = "assets/Fish_Boy/", states = {attack = 21, idle = 10}},
+		--fishBoyGold = {directory = "assets/Fish_Boy_Gold/", states = {attack = 21, idle = 10}},
 		waterDrop = {directory = "assets/Water_Drop/", states = {defeat = 5, idle = 4, move = 4, rise = 5}},
 		waterGirl = {directory = "assets/Water_Girl/", states = {attack = 13, defeat = 5, idle = 5}},
 		sharkMan = {directory = "assets/Shark_Man/", states = {attack = 24, fly = 18, idle = 10}},
 		sharkWoman = {directory = "assets/Shark_Woman/", states = {attack = 24, fly = 18, idle = 10}},
-		npcClarissa = {directory = "assets/Clarissa/", states = {idleleft = 5, idleright = 5}},
-		npcHoney = {directory = "assets/Honey/", states = {idleleft = 5, idleright = 5}},
-		npcJeremy = {directory = "assets/Jeremy/", states = {idleleft = 5, idleright = 5}},
-		npcMila = {directory = "assets/Mila/", states = {idleleft = 5, idleright = 5}},
-		npcCrystal = {directory = "assets/Crystal/", states = {idle = 5}},
-		npcLaeyna = {directory = "assets/Laeyna/", states = {idle = 5}},
-		npcSterren = {directory = "assets/Sterren/", states = {idle = 5}},
+		--npcClarissa = {directory = "assets/Clarissa/", states = {idleleft = 5, idleright = 5}},
+		--npcHoney = {directory = "assets/Honey/", states = {idleleft = 5, idleright = 5}},
+		--npcJeremy = {directory = "assets/Jeremy/", states = {idleleft = 5, idleright = 5}},
+		--npcMila = {directory = "assets/Mila/", states = {idleleft = 5, idleright = 5}},
+		--npcCrystal = {directory = "assets/Crystal/", states = {idle = 5}},
+		--npcLaeyna = {directory = "assets/Laeyna/", states = {idle = 5}},
+		--npcSterren = {directory = "assets/Sterren/", states = {idle = 5}},
 		npcTiffania = {directory = "assets/Tiffania/", states = {idle = 5}},
 		npcWaiter = {directory = "assets/Waiter/", states = {idle = 5}},
 

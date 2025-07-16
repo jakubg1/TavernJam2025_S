@@ -217,7 +217,7 @@ function MainMenu:drawSettings()
     local width = sprite.imageWidth
     local height = sprite.imageHeight
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(img, 800, 450, 0, 0.5, 0.5, width / 2, height / 2)
+    love.graphics.draw(img, 800, 450, 0, 1, 1, width / 2, height / 2)
     -- Labels
     local alpha = _Utils.interpolate2Clamped(0, 1, 0.8, 1, self.settingsTime)
     love.graphics.setColor(0, 0, 0, alpha)

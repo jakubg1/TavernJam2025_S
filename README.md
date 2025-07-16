@@ -6,6 +6,8 @@ Then, run `start.bat`.
 
 If that doesn't work, open `start.bat` in notepad and check the path to the LOVE2D installation directory!
 
+**itch.io page:** https://jakubg1.itch.io/secret-identity
+
 Have fun!
 
 
@@ -19,8 +21,8 @@ Mostly physics reference has been taken from there.
 
 This repository contains code and other assets from the following sources:
 
-- **Sprites are courtesy of fs3k! License pending, it's not that important yet.**
-- **Music by @ultralee14, and potentially some NCS music. I'm not sure.**
+- **Sprites are courtesy of fs3k! License pending. For now, do not use in anything!**
+- **Music by @ultralee14.**
 - Class implementation from https://github.com/bncastle/love2d-tutorial/blob/Episode4/class.lua (MIT license)
 - JSON decoder/encoder implementation from https://github.com/rxi/json.lua (MIT license)
 - bump.lua from https://github.com/kikito/bump.lua (MIT license)

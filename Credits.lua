@@ -29,6 +29,9 @@ function Credits:update(dt)
 end
 
 function Credits:mousepressed(x, y, button)
+    if not self.active then
+        return
+    end
     if button == 1 then
         self.active = false
         _MENU:start()

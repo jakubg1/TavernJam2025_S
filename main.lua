@@ -29,7 +29,7 @@ function love.load()
 end
 
 function love.update(dt)
-	if love.keyboard.isDown("space") and not _PRODUCTION then
+	if not _PRODUCTION and love.keyboard.isDown("rshift") then
 		dt = dt / 5
 	end
 	_MENU:update(dt)

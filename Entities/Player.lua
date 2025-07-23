@@ -47,7 +47,7 @@ function Player:new(x, y)
     self.WALL_JUMP_SPEED_Y = -1000
     self.WALL_JUMP_DIRECTION_HANDICAP_TIME_MAX = 0.1 -- How long should the player automatically be held the opposite direction button so they don't instantly snap to wall again
     self.ATTACK_DELAY = 0.15
-    self.ATTACK_RANGE = 80 -- The width of attack hitboxes
+    self.ATTACK_RANGE = 120 -- The width of attack hitboxes
     self.DROP_ATTACK_SPEED = -700
     self.DROP_ATTACK_RANGE = 80
 
@@ -116,6 +116,7 @@ function Player:updateJumpDelay(dt)
         self.ground = nil
         self.speedY = self.JUMP_SPEED
         self.jumpDelay = nil
+        self.jumpGraceTime = 0
     end
 end
 
@@ -176,9 +177,10 @@ function Player:jump()
         return
     end
     if self.ground or self.jumpGraceTime > 0 then
+        -- Regular jump
         self.jumpDelay = self.JUMP_DELAY_MAX
-        self.jumpGraceTime = 0
     elseif self.sliding and self.direction ~= self.lastWallJumpDirection then
+        -- Wall jump
         if self.direction == "left" then
             self.speedX = self.WALL_JUMP_SPEED_X
         elseif self.direction == "right" then
@@ -267,9 +269,9 @@ end
 ---Executed when key is pressed.
 ---@param key string The keycode.
 function Player:keypressed(key)
-    if key == "w" or key == "up" then
+    if key == "up" or key == "space" then
         self:jump()
-    elseif key == "z" then
+    elseif key == "z" or key == "\\" then
         self:attack()
     end
 end

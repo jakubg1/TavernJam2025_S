@@ -43,10 +43,12 @@ end
 
 ---Loads a file from a given path and interprets it as JSON data. Errors out if the file does not exist or does not contain valid JSON data.
 ---@param path string The path to the file.
----@return table
+---@return table?
 function utils.loadJson(path)
 	local contents = utils.loadFile(path)
-	assert(contents, string.format("Could not JSON-decode: %s, file does not exist", path))
+	if not contents then
+		return
+	end
 	local success, data = pcall(function() return json.decode(contents) end)
 	assert(success, string.format("JSON error: %s: %s", path, data))
 	assert(data, string.format("Could not JSON-decode: %s, error in file contents", path))
@@ -55,7 +57,7 @@ end
 
 ---Saves a file to the given path with the given contents, converted and beautified in JSON format. Errors out if the file cannot be created.
 ---@param path string The path to the file.
----@param data string The contents of the file.
+---@param data table The contents of the file.
 function utils.saveJson(path, data)
 	print("Saving JSON data to " .. path .. "...")
 	utils.saveFile(path, utils.jsonBeautify(json.encode(data)))
@@ -522,20 +524,26 @@ function utils.clamp(n, a, b)
 	return math.min(math.max(n, a or 0), b or 1)
 end
 
-function utils.interpolate(a, b, t)
+---Interpolates a number from `a` to `b` based on time `t`.
+---When `t = 0`, `a` is returned, and when `t = 1`, `b` is returned.
+---@param a number The value for `t = 0`.
+---@param b number The value for `t = 1`.
+---@param t number The time parameter.
+---@return number
+function utils.lerp(a, b, t)
 	return a * (1 - t) + b * t
 end
 
-function utils.interpolateClamped(a, b, t)
-	return utils.interpolate(a, b, math.min(math.max(t, 0), 1))
+function utils.lerpClamped(a, b, t)
+	return utils.lerp(a, b, math.min(math.max(t, 0), 1))
 end
 
-function utils.interpolate2(a, b, t1, t2, t)
-	return utils.interpolate(a, b, (t - t1) / (t2 - t1))
+function utils.lerp2(a, b, t1, t2, t)
+	return utils.lerp(a, b, (t - t1) / (t2 - t1))
 end
 
-function utils.interpolate2Clamped(a, b, t1, t2, t)
-	return utils.interpolate(a, b, math.min(math.max((t - t1) / (t2 - t1), 0), 1))
+function utils.lerp2Clamped(a, b, t1, t2, t)
+	return utils.lerp(a, b, math.min(math.max((t - t1) / (t2 - t1), 0), 1))
 end
 
 
@@ -548,6 +556,13 @@ end
 ---@return boolean
 function utils.doRangesIntersect(s1, e1, s2, e2)
 	return s1 <= e2 and s2 <= e1
+end
+
+
+
+function utils.isPosInBox(x, y, w, h, px, py)
+	assert(w >= 0 and h >= 0, "Illegal boxes passed to `_Utils.isPosInBox()`! You must normalize the boxes first using `_Utils.normalizeBox(x, y, w, h)`.")
+	return px >= x and py >= y and px <= x + w and py <= y + h
 end
 
 

@@ -134,7 +134,7 @@ function Cutscene:draw()
         local dialog = self.DIALOG
         local dialogThisX = line.side == "right" and dialog.x or w - dialog.x
         local dialogPrevX = prevLine and (prevLine.side == "right" and dialog.x or w - dialog.x) or dialogThisX
-        local dialogX = _Utils.interpolateClamped(dialogPrevX, dialogThisX, t)
+        local dialogX = _Utils.lerpClamped(dialogPrevX, dialogThisX, t)
         love.graphics.setColor(0, 0, 0, 0.8)
         love.graphics.draw(dialog.image, dialogX, dialog.y, 0, 1, 1, dialog.image:getWidth() / 2)
         love.graphics.setColor(1, 1, 1)
@@ -149,14 +149,14 @@ function Cutscene:draw()
     -- Character
     local tOut = sameCharacter and 1 or -math.cos(math.min(math.max(self.lineTime / 0.5, 0), 1) * math.pi / 2 + math.pi / 2)
     if line then
-        local imgOffset = _Utils.interpolateClamped(-600, 400, tOut)
+        local imgOffset = _Utils.lerpClamped(-600, 400, tOut)
         local imgX = line.side == "left" and imgOffset or w - imgOffset
         local imgScaleX = line.side == "left" and 1 or -1
         love.graphics.draw(line.img, imgX, 0, 0, imgScaleX, 1, line.img:getWidth() / 2)
     end
     -- Previous character
     if prevLine and tOut < 1 then
-        local prevImgOffset = _Utils.interpolateClamped(400, -600, tOut)
+        local prevImgOffset = _Utils.lerpClamped(400, -600, tOut)
         local prevImgX = prevLine.side == "left" and prevImgOffset or w - prevImgOffset
         local prevImgScaleX = prevLine.side == "left" and 1 or -1
         love.graphics.draw(prevLine.img, prevImgX, 0, 0, prevImgScaleX, 1, prevLine.img:getWidth() / 2)

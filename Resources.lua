@@ -67,9 +67,6 @@ function Resources:new()
 		ui_hover = love.audio.newSource("assets/Sounds/ui_hover.wav", "static"),
 		ui_select = love.audio.newSource("assets/Sounds/ui_select.wav", "static")
 	}
-	for name, sound in pairs(self.sounds) do
-		sound:setVolume(_SETTINGS.sfxVolume)
-	end
 
 	self.font = love.graphics.newFont("assets/Lambda-Regular.ttf", 48)
 	self.fontSmall = love.graphics.newFont("assets/Lambda-Regular.ttf", 24)
@@ -207,6 +204,12 @@ function Resources:new()
 			music = "water"
 		}
 	}
+end
+
+function Resources:setSoundVolume(volume)
+	for name, sound in pairs(self.sounds) do
+		sound:setVolume(volume)
+	end
 end
 
 function Resources:getHeartImage(n)

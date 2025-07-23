@@ -11,12 +11,13 @@ function MainMenu:new()
         {label = "Quit", x = 800, y = 690, w = 250, sound = _RES.sounds.ui_back}
     }
     self.SETTINGS_OPTIONS = {
-        {label = "Sound Volume", x = 800, y = 330, w = 135, font = _RES.fontSmall, slider = true, sound = _RES.sounds.ui_select},
-        {label = "Music Volume", x = 800, y = 430, w = 135, font = _RES.fontSmall, slider = true, sound = _RES.sounds.ui_select},
+        {label = "Sound Volume", x = 800, y = 330, w = 125, font = _RES.fontSmall, slider = true, value = _SETTINGS.soundVolume, sound = _RES.sounds.ui_select},
+        {label = "Music Volume", x = 800, y = 430, w = 125, font = _RES.fontSmall, slider = true, value = _SETTINGS.musicVolume, sound = _RES.sounds.ui_select},
         {label = "Full Screen", x = 800, y = 530, w = 150, font = _RES.fontSmall, checkbox = true, sound = _RES.sounds.ui_select},
         {label = "Back", x = 800, y = 630, w = 150, sound = _RES.sounds.ui_back}
     }
     self.hoveredOption = nil
+    self.heldSlider = nil
 
     self.settingsOpen = false
     self.settingsTime = nil
@@ -37,6 +38,7 @@ function MainMenu:update(dt)
     end
     self:updateTime(dt)
     self:updateHover()
+    self:updateHeldSlider()
     self:updateFadeout(dt)
 end
 
@@ -59,13 +61,31 @@ function MainMenu:updateHover()
     local x, y = love.mouse.getPosition()
     local options = self.settingsOpen and self.SETTINGS_OPTIONS or self.OPTIONS
     for i, option in ipairs(options) do
-        if x >= option.x - option.w and x <= option.x + option.w and y >= option.y - 35 and y <= option.y + 35 then
+        local bx, by, bw, bh = option.x - option.w, option.y - 35, option.w * 2, 70
+        if option.slider then
+            by, bh = option.y + 20, 32
+        end
+        if _Utils.isPosInBox(bx, by, bw, bh, x, y) then
             self.hoveredOption = i
         end
     end
     if lastHovered ~= self.hoveredOption then
         _RES.sounds.ui_hover:stop()
         _RES.sounds.ui_hover:play()
+    end
+end
+
+function MainMenu:updateHeldSlider()
+    if not self.heldSlider then
+        return
+    end
+    local slider = self.heldSlider
+    local x, y = love.mouse.getPosition()
+    slider.value = _Utils.lerp2Clamped(0, 1, slider.x - slider.w, slider.x + slider.w, x)
+    if self.heldSlider == self.SETTINGS_OPTIONS[1] then
+        _SETTINGS:setSoundVolume(slider.value)
+    elseif self.heldSlider == self.SETTINGS_OPTIONS[2] then
+        _SETTINGS:setMusicVolume(slider.value)
     end
 end
 
@@ -115,14 +135,22 @@ function MainMenu:mousepressed(x, y, button)
             end
         else
             if self.hoveredOption == 1 then
-                -- TODO: Add volume slider support
+                self.heldSlider = self.SETTINGS_OPTIONS[self.hoveredOption]
             elseif self.hoveredOption == 2 then
-                -- TODO: Add volume slider support
+                self.heldSlider = self.SETTINGS_OPTIONS[self.hoveredOption]
             elseif self.hoveredOption == 3 then
                 _SETTINGS:toggleFullscreen()
             elseif self.hoveredOption == 4 then
                 self:closeSettings()
             end
+        end
+    end
+end
+
+function MainMenu:mousereleased(x, y, button)
+    if button == 1 then
+        if self.heldSlider then
+            self.heldSlider = nil
         end
     end
 end
@@ -183,7 +211,7 @@ function MainMenu:drawOptions(settings)
         return
     end
     local options = settings and self.SETTINGS_OPTIONS or self.OPTIONS
-    local alpha = settings and _Utils.interpolate2Clamped(0, 1, 0.8, 1, self.settingsTime) or 1
+    local alpha = settings and _Utils.lerp2Clamped(0, 1, 0.8, 1, self.settingsTime) or 1
     for i, option in ipairs(options) do
         love.graphics.setColor(0, 0, 0, 0.5 * alpha)
         local shadowOffset = (option.font or _RES.font):getHeight() / 10
@@ -199,7 +227,8 @@ function MainMenu:drawOptions(settings)
             local w, h = _RES.images.menuSlider:getDimensions()
             local nw, nh = _RES.images.menuSliderNotch:getDimensions()
             love.graphics.draw(_RES.images.menuSlider, option.x, option.y + 35, 0, 0.5, 0.5, w / 2, h / 2)
-            love.graphics.draw(_RES.images.menuSliderNotch, option.x - option.w, option.y + 35, 0, 0.15, 0.15, nw / 2, nh / 2)
+            local notchX = _Utils.lerp(option.x - option.w, option.x + option.w, option.value)
+            love.graphics.draw(_RES.images.menuSliderNotch, notchX, option.y + 35, 0, 0.15, 0.15, nw / 2, nh / 2)
         end
         if option.checkbox then
             local checked = i == 3 and _SETTINGS.fullscreen
@@ -222,7 +251,7 @@ function MainMenu:drawSettings()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(img, 800, 450, 0, 1, 1, width / 2, height / 2)
     -- Labels
-    local alpha = _Utils.interpolate2Clamped(0, 1, 0.8, 1, self.settingsTime)
+    local alpha = _Utils.lerp2Clamped(0, 1, 0.8, 1, self.settingsTime)
     love.graphics.setColor(0, 0, 0, alpha)
     self:drawLabel("Settings", 800, 270)
 end
@@ -231,7 +260,7 @@ function MainMenu:drawFadeout()
     if not self.fadeoutTime then
         return
     end
-    local alpha = _Utils.interpolate2Clamped(0, 1, 0, self.FADEOUT_TIME_MAX, self.fadeoutTime)
+    local alpha = _Utils.lerp2Clamped(0, 1, 0, self.FADEOUT_TIME_MAX, self.fadeoutTime)
     local w, h = love.graphics.getDimensions()
     love.graphics.setColor(0, 0, 0, alpha)
     love.graphics.rectangle("fill", 0, 0, w, h)

@@ -289,9 +289,9 @@ end
 function Level:drawCircleVignette()
     local radius
     if self.startTime then
-        radius = _Utils.interpolate2Clamped(0, self.DEATH_RADIUS, 0, self.START_TIME, self.startTime)
+        radius = _Utils.lerp2Clamped(0, self.DEATH_RADIUS, 0, self.START_TIME, self.startTime)
     elseif self.deathTime >= self.DEATH_DELAY then
-        radius = _Utils.interpolate2Clamped(self.DEATH_RADIUS, 0, self.DEATH_DELAY, self.DEATH_DELAY + self.DEATH_TIME, self.deathTime)
+        radius = _Utils.lerp2Clamped(self.DEATH_RADIUS, 0, self.DEATH_DELAY, self.DEATH_DELAY + self.DEATH_TIME, self.deathTime)
     end
     if not radius then
         return
@@ -314,7 +314,7 @@ function Level:drawCircleVignette()
 end
 
 function Level:drawHUD()
-    local alpha = self.gameOverTime and _Utils.interpolateClamped(1, 0, self.gameOverTime * 2)
+    local alpha = self.gameOverTime and _Utils.lerpClamped(1, 0, self.gameOverTime * 2)
     if alpha == 0 then
         return
     end
@@ -341,7 +341,7 @@ function Level:drawGameOver()
     local w, h = love.graphics.getDimensions()
     local x = w / 2 - _RES.font:getWidth("Game Over") / 2
     local y = h / 2 - _RES.font:getHeight() / 2
-    local alpha = _Utils.interpolate2Clamped(0, 1, 0.5, 2, self.gameOverTime)
+    local alpha = _Utils.lerp2Clamped(0, 1, 0.5, 2, self.gameOverTime)
     love.graphics.setColor(1, 1, 1, alpha)
     love.graphics.print("Game Over", x, y)
 end

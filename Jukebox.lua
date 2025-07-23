@@ -13,9 +13,9 @@ function Jukebox:new()
 	}
 end
 
-function Jukebox:updateVolume()
+function Jukebox:setVolume(volume)
     for name, music in pairs(self.MUSIC) do
-        music:setVolume(_SETTINGS.musicVolume)
+        music:setVolume(volume)
     end
 end
 
@@ -27,7 +27,6 @@ end
 
 function Jukebox:play(name)
     self:stop()
-    self.MUSIC[name]:setVolume(_SETTINGS.musicVolume)
     self.MUSIC[name]:setLooping(true)
     self.MUSIC[name]:play()
 end

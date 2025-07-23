@@ -14,9 +14,10 @@ function love.load()
 	_PRODUCTION = false
 
 	-- Resources
-	_SETTINGS = Settings()
 	_RES = Resources()
 	_JUKEBOX = Jukebox()
+	_SETTINGS = Settings()
+	_SETTINGS:load()
 
 	-- Game logic
 	_WORLD = bump.newWorld()
@@ -54,8 +55,16 @@ function love.mousepressed(x, y, button)
 	_CREDITS:mousepressed(x, y, button)
 end
 
+function love.mousereleased(x, y, button)
+	_MENU:mousereleased(x, y, button)
+end
+
 function love.draw()
 	_MENU:draw()
 	_GAME:draw()
 	_CREDITS:draw()
+end
+
+function love.quit()
+	_SETTINGS:save()
 end

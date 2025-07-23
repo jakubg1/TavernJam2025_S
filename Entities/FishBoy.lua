@@ -22,7 +22,7 @@ function FishBoy:new(x, y, isGold)
         attack = {state = "attack", start = 1, frames = 21, framerate = 20, onFinish = "idle"}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = isGold and _SPRITES.fishBoyGold or _SPRITES.fishBoy
+    self.SPRITES = isGold and _RES.sprites.fishBoyGold or _RES.sprites.fishBoy
 
     -- Water Drop exclusive parameters
     self.PLAYER_DETECTION_RANGE = 800

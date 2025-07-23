@@ -37,7 +37,7 @@ function Player:new(x, y)
         dead = {state = "ko", start = 8, frames = 1, framerate = 15}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _SPRITES.player
+    self.SPRITES = _RES.sprites.player
 
     -- Player exclusive parameters
     self.JUMP_SPEED = -1000

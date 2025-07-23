@@ -6,15 +6,15 @@ local MainMenu = Class:derive("MainMenu")
 
 function MainMenu:new()
     self.OPTIONS = {
-        {label = "Start", x = 800, y = 550, w = 250, sound = "ui_select"},
-        {label = "Settings", x = 800, y = 620, w = 250, sound = "ui_select"},
-        {label = "Quit", x = 800, y = 690, w = 250, sound = "ui_back"}
+        {label = "Start", x = 800, y = 550, w = 250, sound = _RES.sounds.ui_select},
+        {label = "Settings", x = 800, y = 620, w = 250, sound = _RES.sounds.ui_select},
+        {label = "Quit", x = 800, y = 690, w = 250, sound = _RES.sounds.ui_back}
     }
     self.SETTINGS_OPTIONS = {
-        {label = "Sound Volume", x = 800, y = 330, w = 135, font = _FONT_S, slider = true, sound = "ui_select"},
-        {label = "Music Volume", x = 800, y = 430, w = 135, font = _FONT_S, slider = true, sound = "ui_select"},
-        {label = "Full Screen", x = 800, y = 530, w = 150, font = _FONT_S, checkbox = true, sound = "ui_select"},
-        {label = "Back", x = 800, y = 630, w = 150, sound = "ui_back"}
+        {label = "Sound Volume", x = 800, y = 330, w = 135, font = _RES.fontSmall, slider = true, sound = _RES.sounds.ui_select},
+        {label = "Music Volume", x = 800, y = 430, w = 135, font = _RES.fontSmall, slider = true, sound = _RES.sounds.ui_select},
+        {label = "Full Screen", x = 800, y = 530, w = 150, font = _RES.fontSmall, checkbox = true, sound = _RES.sounds.ui_select},
+        {label = "Back", x = 800, y = 630, w = 150, sound = _RES.sounds.ui_back}
     }
     self.hoveredOption = nil
 
@@ -64,8 +64,8 @@ function MainMenu:updateHover()
         end
     end
     if lastHovered ~= self.hoveredOption then
-        _SOUNDS.ui_hover:stop()
-        _SOUNDS.ui_hover:play()
+        _RES.sounds.ui_hover:stop()
+        _RES.sounds.ui_hover:play()
     end
 end
 
@@ -76,7 +76,7 @@ function MainMenu:updateFadeout(dt)
     self.fadeoutTime = math.min(self.fadeoutTime + dt, self.FADEOUT_TIME_MAX)
     if self.fadeoutTime == self.FADEOUT_TIME_MAX then
         self.active = false
-        _GAME:startLevel(_LEVEL_DATA)
+        _GAME:startLevel(_RES.levels.picnic)
     end
 end
 
@@ -103,7 +103,7 @@ function MainMenu:mousepressed(x, y, button)
         local options = self.settingsOpen and self.SETTINGS_OPTIONS or self.OPTIONS
         if self.hoveredOption then
             local option = options[self.hoveredOption]
-            _SOUNDS[option.sound]:play()
+            option.sound:play()
         end
         if not self.settingsOpen then
             if self.hoveredOption == 1 then
@@ -115,7 +115,9 @@ function MainMenu:mousepressed(x, y, button)
             end
         else
             if self.hoveredOption == 1 then
+                -- TODO: Add volume slider support
             elseif self.hoveredOption == 2 then
+                -- TODO: Add volume slider support
             elseif self.hoveredOption == 3 then
                 _SETTINGS:toggleFullscreen()
             elseif self.hoveredOption == 4 then
@@ -139,17 +141,18 @@ end
 
 function MainMenu:drawBackground()
     local w, h = love.graphics.getDimensions()
-    local sw, sh = _MENU_BG:getDimensions()
+    local sw, sh = _RES.images.menuBg:getDimensions()
     local scale = math.min(w / sw, h / sh)
     local x = (w - sw * scale) / 2
     local y = (h - sh * scale) / 2
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(_MENU_BG, x, y, 0, scale)
+    love.graphics.draw(_RES.images.menuBg, x, y, 0, scale)
     -- Text because the artist didn't include it in the image ..............................
+    local TITLE = "Secret Identity: Let's Fight the Elements!"
     love.graphics.setColor(0, 0, 0, 0.5)
-    self:drawLabel("Secret Identity: Let's Fight the Elements!", w / 2 + 5, 100 + 5)
+    self:drawLabel(TITLE, w / 2 + 5, 100 + 5)
     love.graphics.setColor(0, 0.5, 0)
-    self:drawLabel("Secret Identity: Let's Fight the Elements!", w / 2, 100)
+    self:drawLabel(TITLE, w / 2, 100)
 end
 
 function MainMenu:drawSelection()
@@ -163,7 +166,7 @@ function MainMenu:drawSelection()
             local sx = option.x
             local sy = option.y - 10
             local sscale = 0.8
-            local sprite = _SPRITES.menuSelect
+            local sprite = _RES.sprites.menuSelect
             local img = sprite:getImage("select", math.floor(self.time * 10) % 10 + 1)
             local width = sprite.imageWidth
             local height = sprite.imageHeight
@@ -183,7 +186,7 @@ function MainMenu:drawOptions(settings)
     local alpha = settings and _Utils.interpolate2Clamped(0, 1, 0.8, 1, self.settingsTime) or 1
     for i, option in ipairs(options) do
         love.graphics.setColor(0, 0, 0, 0.5 * alpha)
-        local shadowOffset = (option.font or _FONT):getHeight() / 10
+        local shadowOffset = (option.font or _RES.font):getHeight() / 10
         self:drawLabel(option.label, option.x + shadowOffset, option.y + shadowOffset, option.font)
         if not settings then
             love.graphics.setColor(1, 1, 1, alpha)
@@ -193,14 +196,14 @@ function MainMenu:drawOptions(settings)
         self:drawLabel(option.label, option.x, option.y, option.font)
         love.graphics.setColor(1, 1, 1, alpha)
         if option.slider then
-            local w, h = _MENU_SLIDER:getDimensions()
-            local nw, nh = _MENU_SLIDER_NOTCH:getDimensions()
-            love.graphics.draw(_MENU_SLIDER, option.x, option.y + 35, 0, 0.5, 0.5, w / 2, h / 2)
-            love.graphics.draw(_MENU_SLIDER_NOTCH, option.x - option.w, option.y + 35, 0, 0.15, 0.15, nw / 2, nh / 2)
+            local w, h = _RES.images.menuSlider:getDimensions()
+            local nw, nh = _RES.images.menuSliderNotch:getDimensions()
+            love.graphics.draw(_RES.images.menuSlider, option.x, option.y + 35, 0, 0.5, 0.5, w / 2, h / 2)
+            love.graphics.draw(_RES.images.menuSliderNotch, option.x - option.w, option.y + 35, 0, 0.15, 0.15, nw / 2, nh / 2)
         end
         if option.checkbox then
             local checked = i == 3 and _SETTINGS.fullscreen
-            local sprite = checked and _MENU_CHECKBOX_SELECTED or _MENU_CHECKBOX
+            local sprite = checked and _RES.images.menuCheckboxSelected or _RES.images.menuCheckbox
             local w, h = sprite:getDimensions()
             love.graphics.draw(sprite, option.x - option.w + 30, option.y, 0, 0.15, 0.15, w / 2, h / 2)
         end
@@ -211,7 +214,7 @@ function MainMenu:drawSettings()
     if not self.settingsTime then
         return
     end
-    local sprite = _SPRITES.menuWindow
+    local sprite = _RES.sprites.menuWindow
     local frame = self.settingsOpen and math.floor(self.settingsTime * 20) + 1 or 12 - math.floor(self.settingsTime * 20) + 1
     local img = frame <= 12 and sprite:getImage("open", frame) or sprite:getImage("idle", frame % 28 + 1)
     local width = sprite.imageWidth
@@ -235,7 +238,7 @@ function MainMenu:drawFadeout()
 end
 
 function MainMenu:drawLabel(text, x, y, font)
-    font = font or _FONT
+    font = font or _RES.font
     x = x - font:getWidth(text) / 2
     y = y - font:getHeight() / 2
     love.graphics.setFont(font)

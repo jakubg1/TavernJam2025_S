@@ -7,11 +7,11 @@ local Cutscene = Class:derive("Cutscene")
 function Cutscene:new()
     self.cutscene = nil
     self.line = nil
-    self.font = _FONT
+    self.font = _RES.font
 
     self.DIALOG = {}
-    self.DIALOG.image = _DIALOG
-    self.DIALOG.arrowImage = _DIALOG_ARROW
+    self.DIALOG.image = _RES.images.dialog
+    self.DIALOG.arrowImage = _RES.images.dialogArrow
     self.DIALOG.x = 500
     self.DIALOG.y = 100
     self.DIALOG.marginX = 35
@@ -43,8 +43,8 @@ function Cutscene:updateTransition(dt)
         if self.fadingOut then
             self.cutscene = nil
             -- first level -> move to second one
-            if _GAME.level.data == _LEVEL_DATA then
-                _GAME:startLevel(_LEVEL_WT_DATA)
+            if _GAME.level.data == _RES.levels.picnic then
+                _GAME:startLevel(_RES.levels.watertower)
             end
         end
     end

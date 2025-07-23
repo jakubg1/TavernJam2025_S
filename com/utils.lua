@@ -513,6 +513,15 @@ end
 
 
 
+---Clamps a number `n` into range `<a, b>`.
+---@param n number The number to be clamped.
+---@param a number? The minimum possible value. Defaults to `0`.
+---@param b number? The maximum possible value. Defaults to `1`.
+---@return number
+function utils.clamp(n, a, b)
+	return math.min(math.max(n, a or 0), b or 1)
+end
+
 function utils.interpolate(a, b, t)
 	return a * (1 - t) + b * t
 end

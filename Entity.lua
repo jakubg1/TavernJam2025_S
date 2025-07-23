@@ -353,7 +353,7 @@ function Entity:drawSprite()
         --love.graphics.setColor(1, 1, 1, 0.8)
     end
     if self.flashTime > 0 then
-        love.graphics.setShader(_WHITE_SHADER)
+        love.graphics.setShader(_RES.whiteShader)
     end
     love.graphics.draw(img, x, y, 0, scaleX, scaleY, width, height)
     if self.flashTime > 0 then

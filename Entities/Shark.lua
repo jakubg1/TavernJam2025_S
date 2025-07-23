@@ -23,7 +23,7 @@ function Shark:new(x, y, isFemale)
         fly = {state = "fly", start = 1, frames = 18, framerate = 20}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = isFemale and _SPRITES.sharkWoman or _SPRITES.sharkMan
+    self.SPRITES = isFemale and _RES.sprites.sharkWoman or _RES.sprites.sharkMan
 
     -- Water Drop exclusive parameters
     self.PLAYER_DETECTION_RANGE = 800

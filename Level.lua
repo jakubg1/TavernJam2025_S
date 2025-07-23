@@ -160,7 +160,7 @@ function Level:updateStartDeath(dt)
         end
     end
     -- hardcoded: level 2 and ceiling - game win
-    if self.player.y < 50 and self.data == _LEVEL_WT_DATA then
+    if self.player.y < 50 and self.data == _RES.levels.watertower then
         _GAME:unload()
         _CREDITS:start()
     end
@@ -267,7 +267,7 @@ function Level:drawBackground()
     love.graphics.setColor(0.3, 0.8, 1)
     love.graphics.rectangle("fill", 0, 0, w, h)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(_LEVEL_SKY)
+    love.graphics.draw(_RES.images.levelSky)
     love.graphics.draw(self.backgroundImg, (-self.cameraX + w / 2) * 0.75, (-self.cameraY + h / 2 + 200) * 0.75, 0, self.backgroundScale)
     love.graphics.draw(self.foregroundImg, -self.cameraX + w / 2, -self.cameraY + h / 2, 0, self.foregroundScale)
 end
@@ -319,13 +319,14 @@ function Level:drawHUD()
         return
     end
     love.graphics.setColor(1, 1, 1, alpha)
-    love.graphics.draw(_LIVES[math.max(_GAME.lives, 1)], 0, 0, 0, 0.2)
+    love.graphics.draw(_RES:getLivesImage(_GAME.lives), 0, 0, 0, 0.2)
     local flash = self.healthChangeTime and self.healthChangeTime % 0.25 >= 0.125
     if flash then
-        love.graphics.setShader(_WHITE_SHADER)
+        love.graphics.setShader(_RES.whiteShader)
     end
     for i = 1, math.ceil(self.player.MAX_HEALTH / 4) do
-        local sprite = _HEARTS[math.min(math.max(self.healthMeter - (i - 1) * 4, 0), 4)]
+        local n = self.healthMeter - (i - 1) * 4
+        local sprite = _RES:getHeartImage(n)
         love.graphics.draw(sprite, 150 + (i - 1) * 70, 25, 0, 0.12)
     end
     if flash then
@@ -338,8 +339,8 @@ function Level:drawGameOver()
         return
     end
     local w, h = love.graphics.getDimensions()
-    local x = w / 2 - _FONT:getWidth("Game Over") / 2
-    local y = h / 2 - _FONT:getHeight() / 2
+    local x = w / 2 - _RES.font:getWidth("Game Over") / 2
+    local y = h / 2 - _RES.font:getHeight() / 2
     local alpha = _Utils.interpolate2Clamped(0, 1, 0.5, 2, self.gameOverTime)
     love.graphics.setColor(1, 1, 1, alpha)
     love.graphics.print("Game Over", x, y)
@@ -354,7 +355,7 @@ function Level:drawDebug()
     local w, h = love.graphics.getDimensions()
     x = x + self.cameraX - w / 2
     y = y + self.cameraY - h / 2
-    love.graphics.setFont(_FONT)
+    love.graphics.setFont(_RES.font)
     love.graphics.print(string.format("(%.0f, %.0f)\n(%f, %f)\nhealth: %s", x, y, self.player.x, self.player.y, self.player.health))
 end
 

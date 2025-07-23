@@ -29,7 +29,7 @@ function WaterDrop:new(x, y)
         sleep = {state = "rise", start = 1, frames = 5, framerate = 10, onFinish = "idle", reverse = true}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _SPRITES.waterDrop
+    self.SPRITES = _RES.sprites.waterDrop
 
     -- Water Drop exclusive parameters
     self.STRAFE_RANGE = 200

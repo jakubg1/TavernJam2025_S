@@ -48,9 +48,9 @@ function Credits:draw()
         return
     end
     love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(_FONT)
+    love.graphics.setFont(_RES.font)
     love.graphics.print("Congratulations!", 650, 20)
-    love.graphics.setFont(_FONT_S)
+    love.graphics.setFont(_RES.fontSmall)
     love.graphics.printf(self.TEXT, 200, 150, 1200)
 end
 

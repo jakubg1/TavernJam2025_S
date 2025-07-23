@@ -21,7 +21,7 @@ function CloudGirl:new(x, y)
         idle = {state = "idle", start = 1, frames = 9, framerate = 20}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _SPRITES.cloudGirl
+    self.SPRITES = _RES.sprites.cloudGirl
 
     -- Water Drop exclusive parameters
     self.PLAYER_DETECTION_RANGE = 800

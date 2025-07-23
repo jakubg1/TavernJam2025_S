@@ -27,7 +27,7 @@ function WaterGirl:new(x, y)
         defeat = {state = "defeat", start = 1, frames = 5, framerate = 15, delOnFinish = true}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _SPRITES.waterGirl
+    self.SPRITES = _RES.sprites.waterGirl
 
     -- Water Girl exclusive parameters
     self.ATTACK_RANGE = 160 -- The width of attack hitboxes

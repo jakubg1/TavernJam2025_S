@@ -27,7 +27,7 @@ function JumpyCloudy:new(x, y)
         attack = {state = "attack", start = 1, frames = 35, framerate = 20, onFinish = "idle"}
     }
     self.STARTING_STATE = self.STATES.idle
-    self.SPRITES = _SPRITES.jumpyCloudy
+    self.SPRITES = _RES.sprites.jumpyCloudy
 
     -- Water Girl exclusive parameters
     self.ATTACK_RANGE = 160 -- The width of attack hitboxes

@@ -14,7 +14,7 @@ function NPC:new(x, y, name)
     self.MAX_ACC = 4000
     self.DRAG = 2000
     self.GRAVITY = 2500
-    self.SPRITES = _SPRITES["npc" .. name]
+    self.SPRITES = _RES.sprites["npc" .. name]
     if self.SPRITES.states.idleleft then
         self.OFFSET_X, self.OFFSET_Y = 0, -25
         self.FLIP_AXIS_OFFSET = 0
